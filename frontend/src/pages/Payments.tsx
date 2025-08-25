@@ -25,6 +25,9 @@ const Payments: React.FC = () => {
   const [purchasing, setPurchasing] = useState('');
   const [error, setError] = useState('');
   const [preSelectedPlan, setPreSelectedPlan] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState<string>('');
+  const [showCouponInput, setShowCouponInput] = useState<string | null>(null);
+  const [allowPromotionCodes, setAllowPromotionCodes] = useState<boolean>(true);
 
   useEffect(() => {
     fetchData();
@@ -53,12 +56,17 @@ const Payments: React.FC = () => {
     }
   };
 
-  const handlePurchase = async (planId: string) => {
+  const handlePurchase = async (planId: string, useCoupon: boolean = false) => {
     setPurchasing(planId);
     setError('');
 
     try {
-      const { checkout_url } = await apiService.createCheckoutSession(planId);
+      const couponId = useCoupon && couponCode.trim() ? couponCode.trim() : undefined;
+      const { checkout_url } = await apiService.createCheckoutSession(
+        planId, 
+        couponId, 
+        allowPromotionCodes
+      );
       
       // Redirect to Stripe checkout
       window.location.href = checkout_url;
@@ -166,24 +174,64 @@ const Payments: React.FC = () => {
                 </div>
                 <p className="text-sm text-gray-600 mb-6">{plan.description}</p>
                 
-                <button
-                  onClick={() => handlePurchase(plan.plan_id)}
-                  disabled={purchasing === plan.plan_id}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                    plan.plan_id === 'plan_2'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {purchasing === plan.plan_id ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Processing...
+                {/* Coupon Code Section */}
+                {showCouponInput === plan.plan_id && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Discount Code
+                    </label>
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Enter coupon code"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <div className="flex items-center mt-2">
+                      <input
+                        type="checkbox"
+                        id={`promotion-${plan.plan_id}`}
+                        checked={allowPromotionCodes}
+                        onChange={(e) => setAllowPromotionCodes(e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor={`promotion-${plan.plan_id}`} className="ml-2 block text-xs text-gray-600">
+                        Allow entering promo codes at checkout
+                      </label>
                     </div>
-                  ) : (
-                    'Purchase Credits'
-                  )}
-                </button>
+                  </div>
+                )}
+                
+                <div className="space-y-2">
+                  {/* Main Purchase Button */}
+                  <button
+                    onClick={() => handlePurchase(plan.plan_id, showCouponInput === plan.plan_id)}
+                    disabled={purchasing === plan.plan_id}
+                    className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                      plan.plan_id === 'plan_2'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {purchasing === plan.plan_id ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      'Purchase Credits'
+                    )}
+                  </button>
+                  
+                  {/* Coupon Toggle Button */}
+                  <button
+                    onClick={() => setShowCouponInput(showCouponInput === plan.plan_id ? null : plan.plan_id)}
+                    disabled={purchasing === plan.plan_id}
+                    className="w-full py-1 px-4 text-sm text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50"
+                  >
+                    {showCouponInput === plan.plan_id ? 'Hide discount code' : 'Have a discount code?'}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

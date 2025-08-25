@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from backend.database import Database
 from backend.auth import get_current_user
 from backend.payment_service import PaymentService
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import logging
 import os
 
@@ -11,6 +11,8 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 
 class CreateCheckoutRequest(BaseModel):
     plan_id: str
+    coupon_id: Optional[str] = None
+    allow_promotion_codes: bool = False
 
 class PaymentPlan(BaseModel):
     plan_id: str
@@ -71,7 +73,9 @@ async def create_checkout_session(
         user_id=current_user["_id"],
         plan_id=request.plan_id,
         success_url=success_url,
-        cancel_url=cancel_url
+        cancel_url=cancel_url,
+        coupon_id=request.coupon_id,
+        allow_promotion_codes=request.allow_promotion_codes
     )
     
     if not session_data:

@@ -143,9 +143,11 @@ class ApiService {
     return response.data;
   }
 
-  async createCheckoutSession(planId: string) {
+  async createCheckoutSession(planId: string, couponId?: string, allowPromotionCodes: boolean = false) {
     const response = await this.api.post('/payments/create-checkout', {
       plan_id: planId,
+      coupon_id: couponId,
+      allow_promotion_codes: allowPromotionCodes,
     });
     return response.data;
   }
