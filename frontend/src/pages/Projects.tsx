@@ -155,10 +155,16 @@ const Projects: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
                 <p className="text-xs text-gray-500">
                   Created {new Date(project.created_at).toLocaleDateString()}
                 </p>
+                <Link
+                  to={`/app/projects/${project.id}`}
+                  className="btn-primary text-sm py-2 px-4"
+                >
+                  Enter Project
+                </Link>
               </div>
             </div>
           ))}

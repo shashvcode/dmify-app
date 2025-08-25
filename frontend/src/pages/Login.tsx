@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
@@ -14,6 +14,7 @@ const Login: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (location.state?.message) {
@@ -24,10 +25,19 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/app/dashboard';
-      navigate(from, { replace: true });
+      // Check for return URL with plan parameter
+      const returnTo = searchParams.get('returnTo');
+      const planId = searchParams.get('plan');
+      
+      if (returnTo === '/pricing' && planId) {
+        // Redirect to payments page with the selected plan
+        navigate(`/app/payments?plan=${planId}`, { replace: true });
+      } else {
+        const from = location.state?.from?.pathname || '/app/dashboard';
+        navigate(from, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, location.state]);
+  }, [isAuthenticated, navigate, location.state, searchParams]);
 
   const validateForm = () => {
     const newErrors: any = {};

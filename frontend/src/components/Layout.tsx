@@ -20,7 +20,7 @@ const Layout: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/app/dashboard" className="flex items-center">
+              <Link to="/" className="flex items-center">
                 <span className="text-2xl font-black text-gray-900 font-inter">DMify</span>
               </Link>
               
@@ -67,6 +67,13 @@ const Layout: React.FC = () => {
                   }`}
                 >
                   Credits
+                </Link>
+                
+                <Link
+                  to="/pricing"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300"
+                >
+                  Pricing
                 </Link>
               </div>
             </div>

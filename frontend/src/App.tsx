@@ -14,6 +14,7 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Messages from './pages/Messages';
 import Payments from './pages/Payments';
+import PricingPublic from './pages/PricingPublic';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Landing />} />
+            <Route path="/pricing" element={<PricingPublic />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-email" element={<VerifyEmail />} />

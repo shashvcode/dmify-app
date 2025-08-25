@@ -9,9 +9,15 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-2xl font-black text-gray-900 font-inter">DMify</span>
+              <Link to="/" className="text-2xl font-black text-gray-900 font-inter">DMify</Link>
             </div>
             <div className="flex items-center space-x-4">
+              <Link
+                to="/pricing"
+                className="text-gray-700 hover:text-gray-900 font-medium"
+              >
+                Pricing
+              </Link>
               <Link
                 to="/login"
                 className="text-gray-700 hover:text-gray-900 font-medium"
@@ -196,10 +202,11 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <span className="text-2xl font-black text-gray-900 font-inter">DMify</span>
+              <Link to="/" className="text-2xl font-black text-gray-900 font-inter">DMify</Link>
               <p className="text-gray-600 mt-2">Personalized Instagram DM Generator</p>
             </div>
             <div className="flex space-x-6">
+              <Link to="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
               <Link to="/login" className="text-gray-600 hover:text-gray-900">Sign In</Link>
               <Link to="/signup" className="text-gray-600 hover:text-gray-900">Sign Up</Link>
             </div>

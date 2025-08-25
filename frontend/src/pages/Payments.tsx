@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { apiService } from '../lib/api';
 
 interface PaymentPlan {
@@ -17,15 +18,23 @@ interface CreditInfo {
 }
 
 const Payments: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<PaymentPlan[]>([]);
   const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState('');
   const [error, setError] = useState('');
+  const [preSelectedPlan, setPreSelectedPlan] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
-  }, []);
+    
+    // Check if a plan is pre-selected from URL
+    const planId = searchParams.get('plan');
+    if (planId) {
+      setPreSelectedPlan(planId);
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
@@ -122,12 +131,21 @@ const Payments: React.FC = () => {
             <div
               key={plan.plan_id}
               className={`border rounded-lg p-6 relative ${
-                plan.plan_id === 'plan_2' 
-                  ? 'border-blue-500 ring-2 ring-blue-200' 
-                  : 'border-gray-200'
+                plan.plan_id === preSelectedPlan
+                  ? 'border-green-500 ring-2 ring-green-200 bg-green-50'
+                  : plan.plan_id === 'plan_2' 
+                    ? 'border-blue-500 ring-2 ring-blue-200' 
+                    : 'border-gray-200'
               }`}
             >
-              {plan.plan_id === 'plan_2' && (
+              {plan.plan_id === preSelectedPlan && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                    Selected Plan
+                  </span>
+                </div>
+              )}
+              {plan.plan_id === 'plan_2' && plan.plan_id !== preSelectedPlan && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                     Most Popular

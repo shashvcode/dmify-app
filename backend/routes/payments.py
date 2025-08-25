@@ -5,6 +5,7 @@ from backend.auth import get_current_user
 from backend.payment_service import PaymentService
 from typing import List, Dict, Any
 import logging
+import os
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -31,7 +32,7 @@ class CreditInfo(BaseModel):
 
 @router.get("/plans", response_model=List[PaymentPlan])
 async def get_payment_plans():
-    """Get available payment plans"""
+    """Get available payment plans - Public endpoint (no auth required)"""
     plans = PaymentService.get_payment_plans()
     
     return [
@@ -63,8 +64,8 @@ async def create_checkout_session(
     
     # Create checkout session
     # Note: Update these URLs to match your frontend deployment
-    success_url = "https://your-frontend-domain.com/app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}"
-    cancel_url = "https://your-frontend-domain.com/app/dashboard?payment=cancelled"
+    success_url = os.getenv("FRONTEND_URL", "http://localhost:5173") + "/app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = os.getenv("FRONTEND_URL", "http://localhost:5173") + "/app/dashboard?payment=cancelled"
     
     session_data = PaymentService.create_checkout_session(
         user_id=current_user["_id"],
