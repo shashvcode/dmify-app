@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.routes.auth import router as auth_router
 from backend.routes.projects import router as projects_router
 from backend.routes.scraping import router as scraping_router
+from backend.routes.payments import router as payments_router
 from backend.scraper_algos import scrape
 from pydantic import BaseModel
 
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(scraping_router)
+app.include_router(payments_router)
 
 class ScrapeRequest(BaseModel):
     username: str

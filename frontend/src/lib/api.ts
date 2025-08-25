@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
 
-const BASE_URL = 'http://127.0.0.1:8000';
+const BASE_URL = 'https://dmify-app.onrender.com';
 
 class ApiService {
   private api: AxiosInstance;
@@ -134,6 +134,29 @@ class ApiService {
 
   async getAllMessages() {
     const response = await this.api.get('/scrape/messages');
+    return response.data;
+  }
+
+  // Payment methods
+  async getPaymentPlans() {
+    const response = await this.api.get('/payments/plans');
+    return response.data;
+  }
+
+  async createCheckoutSession(planId: string) {
+    const response = await this.api.post('/payments/create-checkout', {
+      plan_id: planId,
+    });
+    return response.data;
+  }
+
+  async getUserCredits() {
+    const response = await this.api.get('/payments/credits');
+    return response.data;
+  }
+
+  async getPaymentHistory() {
+    const response = await this.api.get('/payments/history');
     return response.data;
   }
 

@@ -18,12 +18,19 @@ interface Message {
   created_at: string;
 }
 
+interface CreditInfo {
+  credits: number;
+  total_earned: number;
+  total_used: number;
+}
+
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
   const [project, setProject] = useState<Project | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [username, setUsername] = useState('');
@@ -39,13 +46,15 @@ const ProjectDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      const [projectData, messagesData] = await Promise.all([
+      const [projectData, messagesData, creditsData] = await Promise.all([
         apiService.getProject(id),
-        apiService.getProjectMessages(id)
+        apiService.getProjectMessages(id),
+        apiService.getUserCredits()
       ]);
       
       setProject(projectData);
       setMessages(messagesData);
+      setCredits(creditsData);
     } catch (error: any) {
       if (error.response?.status === 404) {
         navigate('/projects');
@@ -74,12 +83,17 @@ const ProjectDetail: React.FC = () => {
       if (result.success) {
         setSuccess('DM generated successfully!');
         setUsername('');
-        fetchProjectData(); // Refresh messages
+        fetchProjectData(); // Refresh messages and credits
       } else {
         setError(result.error || 'Failed to generate DM');
       }
     } catch (error: any) {
-      setError(error.response?.data?.detail || 'Failed to generate DM');
+      if (error.response?.status === 402) {
+        // Payment required - insufficient credits
+        setError(error.response?.data?.detail || 'Insufficient credits');
+      } else {
+        setError(error.response?.data?.detail || 'Failed to generate DM');
+      }
     } finally {
       setGenerating(false);
     }
@@ -146,6 +160,34 @@ const ProjectDetail: React.FC = () => {
             </div>
           </div>
 
+          {/* Credit Status */}
+          {credits && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Credits</h3>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-blue-900">{credits.credits} credits remaining</p>
+                  <p className="text-sm text-blue-600">Each message generation uses 1 credit</p>
+                </div>
+                {credits.credits <= 3 && (
+                  <Link
+                    to="/app/payments"
+                    className="btn-primary text-sm"
+                  >
+                    Buy More
+                  </Link>
+                )}
+              </div>
+              {credits.credits === 0 && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800 text-sm">
+                    You have no credits remaining. <Link to="/app/payments" className="font-medium underline">Purchase more credits</Link> to continue generating messages.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Generate DM */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate DM</h3>
@@ -179,7 +221,7 @@ const ProjectDetail: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={generating || !username.trim()}
+                disabled={generating || !username.trim() || (credits?.credits ?? 0) <= 0}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? (

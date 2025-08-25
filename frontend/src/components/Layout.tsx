@@ -57,6 +57,17 @@ const Layout: React.FC = () => {
                 >
                   Messages
                 </Link>
+                
+                <Link
+                  to="/app/payments"
+                  className={`inline-flex items-center px-1 pt-1 text-sm font-medium ${
+                    isActive('/app/payments')
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300'
+                  }`}
+                >
+                  Credits
+                </Link>
               </div>
             </div>
 

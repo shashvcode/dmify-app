@@ -39,6 +39,13 @@ async def generate_dm_message(
             detail="Username cannot be empty"
         )
     
+    # Check if user has available credits
+    user_credits = Database.get_user_credits(current_user["_id"])
+    if user_credits <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Insufficient credits. Please purchase more credits to continue generating messages."
+        )
 
     project = Database.get_project_by_id(project_id, current_user["_id"])
     if not project:
@@ -51,6 +58,13 @@ async def generate_dm_message(
     username = request.username.strip().lstrip('@')
     
     try:
+        # Use one credit before processing
+        credit_used = Database.use_credit(current_user["_id"])
+        if not credit_used:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Failed to use credit. Please try again or purchase more credits."
+            )
 
         result = scrape(
             username=username,
@@ -60,6 +74,8 @@ async def generate_dm_message(
         )
         
         if not result["success"]:
+            # If scraping failed, refund the credit
+            Database.add_credits(current_user["_id"], 1)
             return {
                 "success": False,
                 "message": None,
@@ -84,7 +100,16 @@ async def generate_dm_message(
             "message_id": message_id
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as is
+        raise
     except Exception as e:
+        # For unexpected errors, refund the credit if it was used
+        try:
+            Database.add_credits(current_user["_id"], 1)
+        except:
+            pass  # If refund fails, log but don't break the error response
+        
         return {
             "success": False,
             "message": None,
