@@ -209,7 +209,7 @@ const PricingPublic: React.FC = () => {
                 </button>
                 
                 <p className="text-xs text-gray-500 mt-2">
-                  💰 Have a discount code? Apply it at checkout!
+                  💰 Have a promo code? Enter it at checkout!
                 </p>
               </div>
             </div>

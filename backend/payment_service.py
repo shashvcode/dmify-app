@@ -54,45 +54,32 @@ class PaymentService:
         user_id: str,
         plan_id: str,
         success_url: str,
-        cancel_url: str,
-        coupon_id: Optional[str] = None,
-        allow_promotion_codes: bool = False
+        cancel_url: str
     ) -> Optional[Dict[str, Any]]:
-        """Create a Stripe checkout session with optional discount codes"""
+        """Create a Stripe checkout session with promotion codes enabled"""
         try:
             if plan_id not in PAYMENT_PLANS:
                 raise ValueError(f"Invalid plan_id: {plan_id}")
             
             plan = PAYMENT_PLANS[plan_id]
             
-            # Build session parameters
-            session_params = {
-                'payment_method_types': ['card'],
-                'line_items': [{
+            # Create Stripe checkout session with promotion codes enabled
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
                     'price': plan["price_id"],
                     'quantity': 1,
                 }],
-                'mode': 'payment',
-                'success_url': success_url,
-                'cancel_url': cancel_url,
-                'metadata': {
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                allow_promotion_codes=True,  # Enable promotion code field in Stripe checkout
+                metadata={
                     'user_id': user_id,
                     'plan_id': plan_id,
                     'credits': plan["credits"]
                 }
-            }
-            
-            # Add discount if coupon_id is provided
-            if coupon_id:
-                session_params['discounts'] = [{'coupon': coupon_id}]
-                session_params['metadata']['coupon_id'] = coupon_id
-            
-            # Allow customers to enter promotion codes
-            if allow_promotion_codes:
-                session_params['allow_promotion_codes'] = True
-            
-            # Create Stripe checkout session
-            session = stripe.checkout.Session.create(**session_params)
+            )
             
             # Record the transaction in our database
             Database.create_payment_transaction(
