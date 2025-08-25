@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiService } from '../lib/api';
 
@@ -24,6 +24,22 @@ interface CreditInfo {
   total_used: number;
 }
 
+interface DMJob {
+  id: string;
+  username: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  result?: {
+    success: boolean;
+    message?: string;
+    user_info?: any;
+    error?: string;
+    message_id?: string;
+  };
+}
+
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,30 +47,46 @@ const ProjectDetail: React.FC = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [credits, setCredits] = useState<CreditInfo | null>(null);
+  const [dmJobs, setDmJobs] = useState<DMJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [queueing, setQueueing] = useState(false);
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [useAsyncMode, setUseAsyncMode] = useState(true);
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!id) return;
     fetchProjectData();
+    
+    // Start polling for job updates
+    startPolling();
+    
+    // Cleanup on unmount
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
   }, [id]);
 
   const fetchProjectData = async () => {
     if (!id) return;
     
     try {
-      const [projectData, messagesData, creditsData] = await Promise.all([
+      const [projectData, messagesData, creditsData, jobsData] = await Promise.all([
         apiService.getProject(id),
         apiService.getProjectMessages(id),
-        apiService.getUserCredits()
+        apiService.getUserCredits(),
+        apiService.getProjectDMJobs(id)
       ]);
       
       setProject(projectData);
       setMessages(messagesData);
       setCredits(creditsData);
+      setDmJobs(jobsData);
     } catch (error: any) {
       if (error.response?.status === 404) {
         navigate('/projects');
@@ -65,6 +97,40 @@ const ProjectDetail: React.FC = () => {
     }
   };
 
+  const startPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+    }
+    
+    pollingRef.current = setInterval(async () => {
+      if (!id) return;
+      
+      try {
+        // Only fetch jobs and credits during polling to avoid excessive API calls
+        const [jobsData, creditsData] = await Promise.all([
+          apiService.getProjectDMJobs(id),
+          apiService.getUserCredits()
+        ]);
+        
+        setDmJobs(jobsData);
+        setCredits(creditsData);
+        
+        // Refresh messages if any job completed
+        const hasNewCompletedJobs = jobsData.some((job: DMJob) => 
+          job.status === 'completed' && 
+          !dmJobs.find(oldJob => oldJob.id === job.id && oldJob.status === 'completed')
+        );
+        
+        if (hasNewCompletedJobs) {
+          const messagesData = await apiService.getProjectMessages(id);
+          setMessages(messagesData);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+  };
+
   const handleGenerateDM = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -73,6 +139,14 @@ const ProjectDetail: React.FC = () => {
       return;
     }
 
+    if (useAsyncMode) {
+      handleQueueDM();
+    } else {
+      handleSyncDM();
+    }
+  };
+
+  const handleSyncDM = async () => {
     setGenerating(true);
     setError('');
     setSuccess('');
@@ -96,6 +170,37 @@ const ProjectDetail: React.FC = () => {
       }
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleQueueDM = async () => {
+    setQueueing(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await apiService.queueDMGeneration(id!, username);
+      setSuccess(`@${username} queued for processing!`);
+      setUsername('');
+      // Jobs will be updated via polling
+    } catch (error: any) {
+      if (error.response?.status === 402) {
+        setError(error.response?.data?.detail || 'Insufficient credits');
+      } else {
+        setError(error.response?.data?.detail || 'Failed to queue DM generation');
+      }
+    } finally {
+      setQueueing(false);
+    }
+  };
+
+  const handleCancelJob = async (jobId: string) => {
+    try {
+      await apiService.cancelDMJob(jobId);
+      setSuccess('Job cancelled successfully');
+      // Update will happen via polling
+    } catch (error: any) {
+      setError(error.response?.data?.detail || 'Failed to cancel job');
     }
   };
 
@@ -190,7 +295,29 @@ const ProjectDetail: React.FC = () => {
 
           {/* Generate DM */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Generate DM</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Generate DM</h3>
+              <div className="flex items-center space-x-2">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={useAsyncMode}
+                    onChange={(e) => setUseAsyncMode(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="ml-2 text-sm text-gray-600">Queue Mode</span>
+                </label>
+              </div>
+            </div>
+            
+            {useAsyncMode && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  🚀 <strong>Queue Mode:</strong> Enter usernames back-to-back! They'll be processed in the background and you can see results as they complete.
+                </p>
+              </div>
+            )}
+            
             <form onSubmit={handleGenerateDM} className="space-y-4">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700">
@@ -203,7 +330,7 @@ const ProjectDetail: React.FC = () => {
                   placeholder="e.g., elonmusk (without @)"
                   value={username}
                   onChange={(e) => setUsername(e.target.value.replace('@', ''))}
-                  disabled={generating}
+                  disabled={generating || queueing}
                 />
               </div>
 
@@ -221,7 +348,7 @@ const ProjectDetail: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={generating || !username.trim() || (credits?.credits ?? 0) <= 0}
+                disabled={generating || queueing || !username.trim() || (credits?.credits ?? 0) <= 0}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? (
@@ -229,6 +356,13 @@ const ProjectDetail: React.FC = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Generating...
                   </div>
+                ) : queueing ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Queueing...
+                  </div>
+                ) : useAsyncMode ? (
+                  'Add to Queue'
                 ) : (
                   'Generate DM'
                 )}
@@ -237,8 +371,64 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Generated Messages */}
-        <div className="lg:col-span-2">
+        {/* Jobs Queue and Generated Messages */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* Job Queue */}
+          {useAsyncMode && dmJobs.length > 0 && (
+            <div className="card">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Processing Queue ({dmJobs.filter(job => job.status !== 'completed').length} active)
+              </h3>
+              
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {dmJobs
+                  .filter(job => job.status !== 'completed')
+                  .map((job) => (
+                    <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex-shrink-0">
+                          {job.status === 'pending' && (
+                            <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                          )}
+                          {job.status === 'processing' && (
+                            <div className="w-3 h-3 bg-blue-500 rounded-full animate-spin border-2 border-blue-500 border-t-transparent"></div>
+                          )}
+                          {job.status === 'failed' && (
+                            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <p className="font-medium text-gray-900">@{job.username}</p>
+                          <p className="text-sm text-gray-500">
+                            {job.status === 'pending' && '⏳ Waiting in queue...'}
+                            {job.status === 'processing' && '🔄 Analyzing profile...'}
+                            {job.status === 'failed' && `❌ ${job.result?.error || 'Failed'}`}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-400">
+                          {new Date(job.created_at).toLocaleTimeString()}
+                        </span>
+                        {job.status === 'pending' && (
+                          <button
+                            onClick={() => handleCancelJob(job.id)}
+                            className="text-red-600 hover:text-red-800 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Generated Messages */}
           <div className="card">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Generated Messages ({messages.length})

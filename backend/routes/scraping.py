@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, BackgroundTasks
 from pydantic import BaseModel
 from backend.database import Database
 from backend.auth import get_current_user
 from backend.scraper_algos import scrape
 from typing import List, Optional
+from datetime import datetime
+import logging
 
 router = APIRouter(prefix="/scrape", tags=["scraping"])
 
@@ -203,3 +205,235 @@ async def get_all_user_messages(current_user: dict = Depends(get_current_user)):
         }
         for message in all_messages
     ]
+
+# New Async DM Generation Models and Endpoints
+
+class DMJobResponse(BaseModel):
+    id: str
+    username: str
+    status: str  # pending, processing, completed, failed
+    created_at: str
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    result: Optional[ScrapeResponse] = None
+
+class QueueDMRequest(BaseModel):
+    username: str
+
+class QueueDMResponse(BaseModel):
+    job_id: str
+    status: str
+    message: str
+
+def process_dm_job(job_id: str):
+    """Background function to process DM generation jobs"""
+    try:
+        # Get the job
+        job = Database.get_dm_job(job_id)
+        if not job:
+            logging.error(f"Job {job_id} not found")
+            return
+        
+        # Mark as processing
+        Database.update_dm_job_status(job_id, "processing", datetime.utcnow())
+        
+        # Get project and user info
+        project = Database.get_project_by_id(job["project_id"], job["user_id"])
+        user = Database.get_user_by_id(job["user_id"])
+        
+        if not project or not user:
+            Database.fail_dm_job(job_id, "Project or user not found")
+            return
+        
+        # Check credits before processing
+        user_credits = Database.get_user_credits(job["user_id"])
+        if user_credits <= 0:
+            Database.fail_dm_job(job_id, "Insufficient credits")
+            return
+        
+        # Use credit
+        credit_used = Database.use_credit(job["user_id"])
+        if not credit_used:
+            Database.fail_dm_job(job_id, "Failed to use credit")
+            return
+        
+        try:
+            # Run the scraping
+            result = scrape(
+                username=job["username"],
+                product_info=project["product_info"],
+                offer_info=project["offer_info"],
+                name=user["name"]
+            )
+            
+            if not result["success"]:
+                # Refund credit if scraping failed
+                Database.add_credits(job["user_id"], 1)
+                Database.fail_dm_job(job_id, result["error"])
+                return
+            
+            # Save the message
+            message_id = Database.save_message(
+                project_id=job["project_id"],
+                username=job["username"],
+                generated_message=result["message"],
+                user_info=result["user_info"]
+            )
+            
+            # Complete the job
+            result["message_id"] = message_id
+            Database.complete_dm_job(job_id, result)
+            
+        except Exception as e:
+            # Refund credit on error
+            Database.add_credits(job["user_id"], 1)
+            Database.fail_dm_job(job_id, f"Processing error: {str(e)}")
+            
+    except Exception as e:
+        logging.error(f"Error processing job {job_id}: {str(e)}")
+        Database.fail_dm_job(job_id, f"Unexpected error: {str(e)}")
+
+@router.post("/projects/{project_id}/queue", response_model=QueueDMResponse)
+async def queue_dm_generation(
+    project_id: str,
+    request: QueueDMRequest,
+    background_tasks: BackgroundTasks,
+    current_user: dict = Depends(get_current_user)
+):
+    """Queue a DM generation job for async processing"""
+    
+    if not request.username.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username cannot be empty"
+        )
+    
+    # Check if user has available credits
+    user_credits = Database.get_user_credits(current_user["_id"])
+    if user_credits <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Insufficient credits. Please purchase more credits to continue generating messages."
+        )
+
+    # Verify project exists and belongs to user
+    project = Database.get_project_by_id(project_id, current_user["_id"])
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    # Create the job
+    job_id = Database.create_dm_job(
+        user_id=current_user["_id"],
+        project_id=project_id,
+        username=request.username
+    )
+    
+    # Add background task to process the job
+    background_tasks.add_task(process_dm_job, job_id)
+    
+    return {
+        "job_id": job_id,
+        "status": "pending",
+        "message": f"DM generation for @{request.username.strip().lstrip('@')} has been queued"
+    }
+
+@router.get("/jobs/{job_id}", response_model=DMJobResponse)
+async def get_dm_job_status(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the status of a DM generation job"""
+    
+    job = Database.get_dm_job(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found"
+        )
+    
+    # Verify job belongs to current user
+    if job["user_id"] != current_user["_id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    return {
+        "id": job["_id"],
+        "username": job["username"],
+        "status": job["status"],
+        "created_at": job["created_at"].isoformat(),
+        "started_at": job["started_at"].isoformat() if job["started_at"] else None,
+        "completed_at": job["completed_at"].isoformat() if job["completed_at"] else None,
+        "result": job["result"] if job["result"] else None
+    }
+
+@router.get("/projects/{project_id}/jobs", response_model=List[DMJobResponse])
+async def get_project_dm_jobs(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all DM generation jobs for a project"""
+    
+    # Verify project exists and belongs to user
+    project = Database.get_project_by_id(project_id, current_user["_id"])
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    jobs = Database.get_project_dm_jobs(project_id, current_user["_id"])
+    
+    return [
+        {
+            "id": job["_id"],
+            "username": job["username"],
+            "status": job["status"],
+            "created_at": job["created_at"].isoformat(),
+            "started_at": job["started_at"].isoformat() if job["started_at"] else None,
+            "completed_at": job["completed_at"].isoformat() if job["completed_at"] else None,
+            "result": job["result"] if job["result"] else None
+        }
+        for job in jobs
+    ]
+
+@router.delete("/jobs/{job_id}")
+async def cancel_dm_job(
+    job_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Cancel a pending DM generation job"""
+    
+    job = Database.get_dm_job(job_id)
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found"
+        )
+    
+    # Verify job belongs to current user
+    if job["user_id"] != current_user["_id"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied"
+        )
+    
+    # Can only cancel pending jobs
+    if job["status"] != "pending":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Can only cancel pending jobs"
+        )
+    
+    success = Database.delete_dm_job(job_id, current_user["_id"])
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel job"
+        )
+    
+    return {"message": "Job cancelled successfully"}

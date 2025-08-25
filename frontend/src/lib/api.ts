@@ -137,6 +137,29 @@ class ApiService {
     return response.data;
   }
 
+  // Async DM Generation methods
+  async queueDMGeneration(projectId: string, username: string) {
+    const response = await this.api.post(`/scrape/projects/${projectId}/queue`, {
+      username: username.replace('@', ''),
+    });
+    return response.data;
+  }
+
+  async getDMJobStatus(jobId: string) {
+    const response = await this.api.get(`/scrape/jobs/${jobId}`);
+    return response.data;
+  }
+
+  async getProjectDMJobs(projectId: string) {
+    const response = await this.api.get(`/scrape/projects/${projectId}/jobs`);
+    return response.data;
+  }
+
+  async cancelDMJob(jobId: string) {
+    const response = await this.api.delete(`/scrape/jobs/${jobId}`);
+    return response.data;
+  }
+
   // Payment methods
   async getPaymentPlans() {
     const response = await this.api.get('/payments/plans');

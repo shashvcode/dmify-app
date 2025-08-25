@@ -19,6 +19,7 @@ messages_collection = db.messages
 verification_codes_collection = db.verification_codes
 user_credits_collection = db.user_credits
 payment_transactions_collection = db.payment_transactions
+dm_generation_jobs_collection = db.dm_generation_jobs
 
 class Database:
     @staticmethod
@@ -341,3 +342,145 @@ class Database:
             return transactions
         except:
             return []
+    
+    # DM Generation Job Management
+    @staticmethod
+    def create_dm_job(user_id: str, project_id: str, username: str) -> str:
+        """Create a new DM generation job"""
+        job_doc = {
+            "user_id": ObjectId(user_id),
+            "project_id": ObjectId(project_id),
+            "username": username.strip().lstrip('@'),
+            "status": "pending",  # pending, processing, completed, failed
+            "created_at": datetime.utcnow(),
+            "started_at": None,
+            "completed_at": None,
+            "result": None,
+            "priority": 1  # for future use
+        }
+        result = dm_generation_jobs_collection.insert_one(job_doc)
+        return str(result.inserted_id)
+    
+    @staticmethod
+    def get_dm_job(job_id: str) -> Optional[Dict[str, Any]]:
+        """Get DM generation job by ID"""
+        try:
+            job = dm_generation_jobs_collection.find_one({"_id": ObjectId(job_id)})
+            if job:
+                job["_id"] = str(job["_id"])
+                job["user_id"] = str(job["user_id"])
+                job["project_id"] = str(job["project_id"])
+            return job
+        except:
+            return None
+    
+    @staticmethod
+    def get_project_dm_jobs(project_id: str, user_id: str) -> list:
+        """Get all DM jobs for a project"""
+        try:
+            jobs = list(dm_generation_jobs_collection.find({
+                "project_id": ObjectId(project_id),
+                "user_id": ObjectId(user_id)
+            }).sort("created_at", -1))
+            
+            for job in jobs:
+                job["_id"] = str(job["_id"])
+                job["user_id"] = str(job["user_id"])
+                job["project_id"] = str(job["project_id"])
+            
+            return jobs
+        except:
+            return []
+    
+    @staticmethod
+    def update_dm_job_status(job_id: str, status: str, started_at: datetime = None) -> bool:
+        """Update DM job status"""
+        try:
+            update_doc = {
+                "status": status,
+                "updated_at": datetime.utcnow()
+            }
+            if started_at:
+                update_doc["started_at"] = started_at
+            if status == "completed" or status == "failed":
+                update_doc["completed_at"] = datetime.utcnow()
+            
+            result = dm_generation_jobs_collection.update_one(
+                {"_id": ObjectId(job_id)},
+                {"$set": update_doc}
+            )
+            return result.modified_count > 0
+        except:
+            return False
+    
+    @staticmethod
+    def complete_dm_job(job_id: str, result: Dict[str, Any]) -> bool:
+        """Mark DM job as completed with result"""
+        try:
+            update_result = dm_generation_jobs_collection.update_one(
+                {"_id": ObjectId(job_id)},
+                {
+                    "$set": {
+                        "status": "completed",
+                        "completed_at": datetime.utcnow(),
+                        "result": result
+                    }
+                }
+            )
+            return update_result.modified_count > 0
+        except:
+            return False
+    
+    @staticmethod
+    def fail_dm_job(job_id: str, error: str) -> bool:
+        """Mark DM job as failed with error"""
+        try:
+            update_result = dm_generation_jobs_collection.update_one(
+                {"_id": ObjectId(job_id)},
+                {
+                    "$set": {
+                        "status": "failed",
+                        "completed_at": datetime.utcnow(),
+                        "result": {
+                            "success": False,
+                            "error": error,
+                            "message": None,
+                            "user_info": None,
+                            "message_id": None
+                        }
+                    }
+                }
+            )
+            return update_result.modified_count > 0
+        except:
+            return False
+    
+    @staticmethod
+    def get_pending_dm_jobs() -> list:
+        """Get all pending DM jobs for background processing"""
+        try:
+            jobs = list(dm_generation_jobs_collection.find({
+                "status": "pending"
+            }).sort("created_at", 1))  # FIFO processing
+            
+            for job in jobs:
+                job["_id"] = str(job["_id"])
+                job["user_id"] = str(job["user_id"])
+                job["project_id"] = str(job["project_id"])
+            
+            return jobs
+        except:
+            return []
+    
+    @staticmethod
+    def delete_dm_job(job_id: str, user_id: str) -> bool:
+        """Delete a DM job (only if pending and belongs to user)"""
+        try:
+            result = dm_generation_jobs_collection.delete_one({
+                "_id": ObjectId(job_id),
+                "user_id": ObjectId(user_id),
+                "status": "pending"
+            })
+            return result.deleted_count > 0
+        except:
+            return False
