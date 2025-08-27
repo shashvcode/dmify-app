@@ -15,6 +15,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Messages from './pages/Messages';
 import Payments from './pages/Payments';
 import PricingPublic from './pages/PricingPublic';
+import Goodbye from './pages/Goodbye';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/goodbye" element={<Goodbye />} />
             
             {/* Protected Routes */}
             <Route path="/app" element={

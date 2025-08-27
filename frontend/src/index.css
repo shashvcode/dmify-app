@@ -894,4 +894,127 @@
   .credits-trust-footer {
     @apply mt-8 text-center text-xs text-neutral-600 space-y-1;
   }
+
+  /* Navbar Styles */
+  .navbar {
+    @apply bg-white/70 backdrop-blur-md border-b border-black/5 transition-shadow duration-300;
+    height: 64px;
+  }
+  
+  .navbar.scrolled {
+    @apply shadow-[0_4px_20px_rgba(0,0,0,.06)];
+  }
+  
+  .navbar-container {
+    @apply max-w-7xl mx-auto px-4 lg:px-6 h-full flex items-center justify-between;
+  }
+  
+  .navbar-logo {
+    @apply text-2xl font-black text-primary-text font-space;
+  }
+  
+  .navbar-nav {
+    @apply flex items-center gap-6 lg:gap-7;
+  }
+  
+  .navbar-link {
+    @apply text-sm font-medium text-secondary-text hover:text-neutral-900 transition-colors relative focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 rounded-md px-2 py-1;
+  }
+  
+  .navbar-link.active {
+    @apply text-neutral-900;
+  }
+  
+  .navbar-link.active::after {
+    content: '';
+    @apply absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-electric-blue to-neon-purple rounded-full;
+    bottom: -8px;
+  }
+  
+  .navbar-profile {
+    @apply flex items-center gap-3;
+  }
+  
+  .navbar-credits {
+    @apply bg-electric-blue/10 text-electric-blue text-xs font-semibold px-3 py-1 rounded-full;
+  }
+  
+  .navbar-avatar {
+    @apply w-8 h-8 rounded-full bg-gradient-to-r from-electric-blue to-neon-purple text-white text-sm font-semibold flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2;
+  }
+  
+  .profile-menu {
+    @apply absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-md rounded-xl shadow-2xl ring-1 ring-black/5 p-1.5;
+    z-index: 9999;
+  }
+  
+  .profile-menu-section {
+    @apply py-1;
+  }
+  
+  .profile-menu-section:not(:last-child) {
+    @apply border-b border-gray-100;
+  }
+  
+  .profile-menu-user {
+    @apply p-3 rounded-lg;
+  }
+  
+  .profile-menu-name {
+    @apply font-semibold text-primary-text text-sm;
+  }
+  
+  .profile-menu-email {
+    @apply text-xs text-secondary-text mt-0.5;
+  }
+  
+  .profile-menu-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-secondary-text hover:text-primary-text hover:bg-neutral-50 transition-colors cursor-pointer;
+    height: 38px;
+  }
+  
+  .profile-menu-item.destructive {
+    @apply text-red-600 hover:text-red-700 hover:bg-red-50;
+  }
+  
+  .profile-menu-icon {
+    @apply w-5 h-5;
+  }
+
+  /* Delete Account Modal */
+  .delete-modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+  }
+  
+  .delete-modal {
+    @apply bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl ring-1 ring-black/5 p-6 w-full max-w-md;
+  }
+  
+  .delete-modal-title {
+    @apply text-xl font-bold text-primary-text mb-2;
+  }
+  
+  .delete-modal-description {
+    @apply text-sm text-secondary-text mb-6;
+  }
+  
+  .delete-modal-input {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-20 focus:ring-2 focus:ring-red-400 focus:border-transparent mb-4;
+  }
+  
+  .delete-modal-checkbox {
+    @apply flex items-start gap-3 mb-6;
+  }
+  
+  .delete-modal-actions {
+    @apply flex gap-3 justify-end;
+  }
+  
+  .delete-modal-cancel {
+    @apply px-6 py-3 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors;
+  }
+  
+  .delete-modal-confirm {
+    @apply px-6 py-3 bg-red-600 text-white rounded-full font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+  }
 }

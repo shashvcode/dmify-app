@@ -510,3 +510,29 @@ class Database:
             return message
         except:
             return None
+    
+    @staticmethod
+    def mark_account_for_deletion(user_id: str) -> bool:
+        """Mark user account for deletion (soft delete with 30-day retention)"""
+        try:
+            from datetime import datetime, timedelta
+            
+            deletion_date = datetime.utcnow() + timedelta(days=30)
+            
+            # Update user account with deletion flag
+            result = users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "marked_for_deletion": True,
+                        "deletion_date": deletion_date,
+                        "marked_for_deletion_at": datetime.utcnow(),
+                        "account_status": "pending_deletion"
+                    }
+                }
+            )
+            
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error marking account for deletion: {e}")
+            return False

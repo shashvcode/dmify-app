@@ -185,6 +185,11 @@ class ApiService {
     return response.data;
   }
 
+  async deleteAccount() {
+    const response = await this.api.delete('/auth/delete-account');
+    return response.data;
+  }
+
   async getPaymentHistory() {
     const response = await this.api.get('/payments/history');
     return response.data;
