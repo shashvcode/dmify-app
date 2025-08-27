@@ -137,6 +137,13 @@ class ApiService {
     return response.data;
   }
 
+  async updateMessage(projectId: string, messageId: string, generatedMessage: string) {
+    const response = await this.api.put(`/scrape/projects/${projectId}/messages/${messageId}`, {
+      generated_message: generatedMessage,
+    });
+    return response.data;
+  }
+
   // Async DM Generation methods
   async queueDMGeneration(projectId: string, username: string) {
     const response = await this.api.post(`/scrape/projects/${projectId}/queue`, {

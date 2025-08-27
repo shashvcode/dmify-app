@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 EMAIL_SENDING_KEY = os.getenv("EMAIL_SENDING_KEY")
-DOMAIN = "go-optimize-studio.com"
-FROM_EMAIL = f"Optimize Studio <postmaster@{DOMAIN}>"
+DOMAIN = "dmify.app"
+FROM_EMAIL = f"DMify <postmaster@{DOMAIN}>"
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 if FRONTEND_URL == "http://localhost:3000":
@@ -30,7 +30,7 @@ verification_template = """
     <title>Verify Your Email</title>
 </head>
 <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h2>Welcome to Optimize Studio!</h2>
+    <h2>Welcome to DMify!</h2>
     <p>Thanks for signing up. Please verify your email address by entering this verification code in our app:</p>
     <div style="text-align: center; margin: 30px 0;">
         <div style="background-color: #f8f9fa; border: 2px solid #007bff; color: #007bff; padding: 20px; border-radius: 8px; font-size: 32px; font-weight: bold; letter-spacing: 4px; display: inline-block;">
@@ -105,7 +105,7 @@ async def send_verification_email(email: str, verification_code: str) -> bool:
     
     return await send_email_mailgun(
         to_email=email,
-        subject="Verify Your Email - Optimize Studio",
+        subject="Verify Your Email - DMify",
         html_content=html_content
     )
 
@@ -116,7 +116,7 @@ async def send_password_reset_email(email: str, token: str) -> bool:
     
     return await send_email_mailgun(
         to_email=email,
-        subject="Reset Your Password - Optimize Studio",
+        subject="Reset Your Password - DMify",
         html_content=html_content
     )
 
@@ -148,7 +148,7 @@ async def send_leads_ready_email(email: str, project_name: str, lead_count: int)
                 <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
                 <p style="color: #666; font-size: 14px;">
                     Best regards,<br>
-                    The Optimize Studio Team<br>
+                    The DMify Team<br>
                     <em>Powering your lead generation with AI</em>
                 </p>
             </div>

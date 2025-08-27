@@ -75,131 +75,206 @@ const Payments: React.FC = () => {
 
   const getPricePerCredit = (amount: number, credits: number) => {
     const pricePerCredit = amount / credits / 100;
-    return `$${pricePerCredit.toFixed(3)} per message`;
+    return `$${pricePerCredit.toFixed(3)} / msg`;
+  };
+
+  const getMostPopularPlan = () => {
+    // Identify the middle plan or plan_2 as most popular
+    if (plans.length === 3) {
+      return plans[1]; // Middle plan
+    }
+    return plans.find(plan => plan.plan_id === 'plan_2') || plans[1];
+  };
+
+  const getPlanFeatures = (planId: string) => {
+    const commonFeatures = [
+      'Credits never expire',
+      'Use across all projects',
+      'AI analysis included'
+    ];
+    return commonFeatures;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="credits-container">
+        <PaymentsSkeleton />
       </div>
     );
   }
 
-  return (
-    <div className="px-4 sm:px-0">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 font-inter">Message Credits</h1>
-        <p className="mt-2 text-gray-600">
-          Purchase credits to generate personalized Instagram DMs
-        </p>
-      </div>
+  const mostPopularPlan = getMostPopularPlan();
 
+  return (
+    <div className="credits-container">
+      {/* Error Banner */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+        <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-20">
           {error}
         </div>
       )}
 
-      {/* Current Credits */}
+      {/* Header */}
+      <div className="credits-header">
+        <h1 className="credits-title">Message Credits</h1>
+        <p className="credits-subtitle">
+          Purchase credits to generate personalized Instagram DMs
+        </p>
+      </div>
+
+      {/* Current Credits Summary */}
       {credits && (
-        <div className="mb-8 card">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Credits</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">{credits.credits}</div>
-              <div className="text-sm text-gray-600">Available Credits</div>
+        <div className="credits-summary-card">
+          <div className="credits-summary-grid">
+            <div className="credits-tile available">
+              <div className="credits-tile-label">Available Credits</div>
+              <div className="credits-tile-value">{credits.credits}</div>
+              <div className="credits-tile-microcopy">Credits never expire</div>
             </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{credits.total_earned}</div>
-              <div className="text-sm text-gray-600">Total Earned</div>
+            <div className="credits-tile earned">
+              <div className="credits-tile-label">Total Earned</div>
+              <div className="credits-tile-value">{credits.total_earned}</div>
+              <div className="credits-tile-microcopy">All-time purchases</div>
             </div>
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600">{credits.total_used}</div>
-              <div className="text-sm text-gray-600">Total Used</div>
+            <div className="credits-tile used">
+              <div className="credits-tile-label">Total Used</div>
+              <div className="credits-tile-value">{credits.total_used}</div>
+              <div className="credits-tile-microcopy">1 DM = 1 credit</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Payment Plans */}
-      <div className="card">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Purchase Credits</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <div
-              key={plan.plan_id}
-              className={`border rounded-lg p-6 relative ${
-                plan.plan_id === preSelectedPlan
-                  ? 'border-green-500 ring-2 ring-green-200 bg-green-50'
-                  : plan.plan_id === 'plan_2' 
-                    ? 'border-blue-500 ring-2 ring-blue-200' 
-                    : 'border-gray-200'
-              }`}
-            >
-              {plan.plan_id === preSelectedPlan && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Selected Plan
-                  </span>
-                </div>
-              )}
-              {plan.plan_id === 'plan_2' && plan.plan_id !== preSelectedPlan && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{plan.name}</h3>
-                <div className="text-3xl font-bold text-gray-900 mb-1">
-                  {formatPrice(plan.amount)}
-                </div>
-                <div className="text-sm text-gray-500 mb-4">
-                  {getPricePerCredit(plan.amount, plan.credits)}
-                </div>
-                <div className="text-lg text-blue-600 font-medium mb-4">
-                  {plan.credits} Messages
-                </div>
-                <p className="text-sm text-gray-600 mb-6">{plan.description}</p>
-                
-                <button
-                  onClick={() => handlePurchase(plan.plan_id)}
-                  disabled={purchasing === plan.plan_id}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                    plan.plan_id === 'plan_2'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {purchasing === plan.plan_id ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      Processing...
-                    </div>
-                  ) : (
-                    'Purchase Credits'
-                  )}
-                </button>
-                
-                <p className="text-xs text-gray-500 mt-2 text-center">
-                  💰 Have a promo code? Enter it at checkout!
-                </p>
-              </div>
-            </div>
-          ))}
+      {/* Purchase Credits */}
+      <div className="credits-plans-card">
+        <div className="credits-plans-header">
+          <h2 className="credits-plans-title">Purchase Credits</h2>
+          <a href="#" className="credits-plans-link">View billing history</a>
         </div>
         
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Secure payment processing powered by Stripe</p>
-          <p className="mt-1">Credits never expire and can be used across all your projects</p>
+        <div className="credits-plans-grid">
+          {plans.map((plan) => {
+            const isPopular = plan.plan_id === mostPopularPlan?.plan_id;
+            const isSelected = plan.plan_id === preSelectedPlan;
+            
+            return (
+              <div
+                key={plan.plan_id}
+                className={`credits-plan-card ${isPopular ? 'popular' : ''}`}
+              >
+                {(isPopular && !isSelected) && (
+                  <div className="credits-plan-badge" aria-label="Most Popular">
+                    Most Popular
+                  </div>
+                )}
+                {isSelected && (
+                  <div className="credits-plan-badge bg-green-500">
+                    Selected Plan
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <h3 className="credits-plan-title">{plan.name}</h3>
+                  <div className="credits-plan-price">
+                    {formatPrice(plan.amount)}
+                  </div>
+                  <div className="credits-plan-price-per">
+                    {getPricePerCredit(plan.amount, plan.credits)}
+                  </div>
+                  <div className="credits-plan-quantity">
+                    {plan.credits} Messages
+                  </div>
+                  
+                  <div className="credits-plan-features">
+                    {getPlanFeatures(plan.plan_id).map((feature, index) => (
+                      <div key={index} className="credits-plan-feature">
+                        <svg className="credits-plan-feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button
+                    onClick={() => handlePurchase(plan.plan_id)}
+                    disabled={purchasing === plan.plan_id}
+                    className={`credits-plan-button ${isPopular ? 'primary' : 'secondary'}`}
+                  >
+                    {purchasing === plan.plan_id ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                        Processing...
+                      </div>
+                    ) : (
+                      'Purchase Credits'
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        <div className="credits-promo-note">
+          💰 Have a promo code? Enter it at checkout!
+        </div>
+        
+        <div className="credits-trust-footer">
+          <p>Secure payments via Stripe.</p>
+          <p>Credits never expire and can be used across projects.</p>
         </div>
       </div>
     </div>
   );
 };
+
+// Loading Skeleton Component
+const PaymentsSkeleton: React.FC = () => (
+  <div className="animate-pulse">
+    <div className="credits-header">
+      <div className="skeleton h-10 w-64 mb-2"></div>
+      <div className="skeleton h-5 w-96"></div>
+    </div>
+    
+    <div className="credits-summary-card">
+      <div className="credits-summary-grid">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="credits-tile available">
+            <div className="skeleton h-4 w-20 mb-2 mx-auto"></div>
+            <div className="skeleton h-8 w-16 mb-1 mx-auto"></div>
+            <div className="skeleton h-3 w-24 mx-auto"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+    
+    <div className="credits-plans-card">
+      <div className="credits-plans-header">
+        <div className="skeleton h-6 w-40"></div>
+        <div className="skeleton h-4 w-32"></div>
+      </div>
+      
+      <div className="credits-plans-grid">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="credits-plan-card">
+            <div className="text-center space-y-4">
+              <div className="skeleton h-6 w-20 mx-auto"></div>
+              <div className="skeleton h-12 w-24 mx-auto"></div>
+              <div className="skeleton h-4 w-16 mx-auto"></div>
+              <div className="skeleton h-6 w-28 mx-auto"></div>
+              <div className="space-y-2">
+                {[...Array(3)].map((_, j) => (
+                  <div key={j} className="skeleton h-4 w-full"></div>
+                ))}
+              </div>
+              <div className="skeleton h-12 w-full rounded-full"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
 export default Payments;

@@ -19,6 +19,9 @@ class MessageResponse(BaseModel):
     user_info: dict
     created_at: str
 
+class UpdateMessageRequest(BaseModel):
+    generated_message: str
+
 class ScrapeResponse(BaseModel):
     success: bool
     message: Optional[str] = None
@@ -181,6 +184,63 @@ async def get_message(
         "generated_message": message["generated_message"],
         "user_info": message["user_info"],
         "created_at": message["created_at"].isoformat()
+    }
+
+@router.put("/projects/{project_id}/messages/{message_id}", response_model=MessageResponse)
+async def update_message(
+    project_id: str,
+    message_id: str,
+    request: UpdateMessageRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a generated message"""
+    
+    if not request.generated_message.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Message content cannot be empty"
+        )
+    
+    # Verify project exists and belongs to user
+    project = Database.get_project_by_id(project_id, current_user["_id"])
+    if not project:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found"
+        )
+    
+    # Get the message to verify it exists and belongs to this project
+    messages = Database.get_project_messages(project_id)
+    message = next((m for m in messages if m["_id"] == message_id), None)
+    
+    if not message:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Message not found"
+        )
+    
+    # Update the message
+    success = Database.update_message(message_id, request.generated_message.strip())
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update message"
+        )
+    
+    # Return the updated message
+    updated_message = Database.get_message_by_id(message_id)
+    if not updated_message:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve updated message"
+        )
+    
+    return {
+        "id": updated_message["_id"],
+        "username": updated_message["username"],
+        "generated_message": updated_message["generated_message"],
+        "user_info": updated_message["user_info"],
+        "created_at": updated_message["created_at"].isoformat()
     }
 
 @router.get("/messages", response_model=List[MessageResponse])

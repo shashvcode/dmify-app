@@ -484,3 +484,29 @@ class Database:
             return result.deleted_count > 0
         except:
             return False
+    
+    @staticmethod
+    def update_message(message_id: str, generated_message: str) -> bool:
+        """Update a message's content"""
+        try:
+            result = messages_collection.update_one(
+                {"_id": ObjectId(message_id)},
+                {
+                    "$set": {
+                        "generated_message": generated_message,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except:
+            return False
+    
+    @staticmethod
+    def get_message_by_id(message_id: str) -> Optional[Dict[str, Any]]:
+        """Get a single message by ID"""
+        try:
+            message = messages_collection.find_one({"_id": ObjectId(message_id)})
+            return message
+        except:
+            return None

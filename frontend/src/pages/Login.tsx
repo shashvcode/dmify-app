@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import SEOHead from '../components/SEOHead';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,7 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
   
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ const Login: React.FC = () => {
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    setIsVisible(true);
+    
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
       setFormData(prev => ({ ...prev, email: location.state.email || '' }));
@@ -45,7 +49,7 @@ const Login: React.FC = () => {
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = 'That email looks off — try again?';
     }
 
     if (!formData.password) {
@@ -87,91 +91,149 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-black text-gray-900 font-inter">
-            Welcome back
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to your DMify account
-          </p>
+    <>
+      <SEOHead
+        title="Sign In to DMify | AI Instagram DM Generator"
+        description="Sign in to DMify — access your AI Instagram DM generator and continue creating personalized Instagram outreach messages that get results."
+        keywords="DMify login, sign in, AI Instagram DM generator, Instagram outreach tool, personalized DMs, Instagram DM automation"
+        canonical="https://dmify.app/login"
+      />
+      <div className="min-h-screen bg-hero-gradient relative overflow-hidden flex items-center justify-center">
+      {/* Floating Orbs */}
+      <div className="floating-orb bg-electric-blue w-64 h-64 top-20 left-20 blur-3xl"></div>
+      <div className="floating-orb bg-neon-purple w-96 h-96 bottom-20 right-32 blur-3xl"></div>
+      
+      {/* Navigation */}
+      <nav className="bg-white/80 backdrop-blur-md border-b border-white/20 fixed top-0 left-0 right-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link to="/" className="text-2xl font-black text-primary-text font-space">DMify</Link>
+            <div className="flex items-center space-x-4">
+              <Link to="/pricing" className="text-secondary-text hover:text-primary-text font-medium transition-colors">
+                Pricing
+              </Link>
+              <Link to="/signup" className="btn-primary">
+                Get Started
+              </Link>
+            </div>
+          </div>
         </div>
-        
-        {successMessage && (
-          <div className="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm text-center">
-            {successMessage}
-          </div>
-        )}
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="input-field mt-1"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-            </div>
+      </nav>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="input-field mt-1"
-                placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+      <div className="w-full max-w-md px-4 relative z-10">
+        <div className={`transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <div className="glass-card">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-black text-primary-text mb-3 font-space">
+                <span className="gradient-text">Welcome back</span>
+              </h1>
+              <p className="text-secondary-text text-lg">
+                Sign in to your DMify account
+              </p>
             </div>
-          </div>
+            
+            {successMessage && (
+              <div className="bg-green-50/80 backdrop-blur-glass border border-green-200 text-green-600 px-4 py-3 rounded-20 text-sm text-center mb-6">
+                {successMessage}
+              </div>
+            )}
+            
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-primary-text mb-2">
+                  Email address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="input-field focus:ring-2 focus:ring-offset-2 focus:ring-neon-purple"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              </div>
 
-          {errors.submit && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
-              {errors.submit}
-            </div>
-          )}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-primary-text mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="input-field focus:ring-2 focus:ring-offset-2 focus:ring-neon-purple"
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary w-full flex justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              ) : (
-                'Sign in'
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-electric-blue focus:ring-neon-purple border-gray-300 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-secondary-text">
+                    Remember me
+                  </label>
+                </div>
+
+                <div className="text-sm">
+                  <Link to="/forgot-password" className="text-electric-blue hover:text-neon-purple font-medium transition-colors">
+                    Forgot your password?
+                  </Link>
+                </div>
+              </div>
+
+              {errors.submit && (
+                <div className="bg-red-50/80 backdrop-blur-glass border border-red-200 text-red-600 px-4 py-3 rounded-20 text-sm">
+                  {errors.submit}
+                </div>
               )}
-            </button>
-          </div>
 
-          <div className="text-center">
-            <span className="text-gray-600">Don't have an account? </span>
-            <Link to="/signup" className="font-medium text-blue-600 hover:text-blue-500">
-              Sign up
-            </Link>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Signing in...
+                    </div>
+                  ) : (
+                    'Sign in'
+                  )}
+                </button>
+              </div>
+
+              <div className="text-center">
+                <span className="text-secondary-text">Don't have an account? </span>
+                <Link to="/signup" className="text-electric-blue hover:text-neon-purple font-medium transition-colors">
+                  Sign up
+                </Link>
+              </div>
+            </form>
+
+            <div className="mt-8 pt-6 border-t border-white/20 text-center text-sm text-secondary-text">
+              <p>We never message anyone without your action.</p>
+            </div>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

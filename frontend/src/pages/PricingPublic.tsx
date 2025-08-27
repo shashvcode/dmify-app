@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../lib/api';
+import SEOHead from '../components/SEOHead';
 
 interface PaymentPlan {
   plan_id: string;
@@ -19,8 +20,10 @@ const PricingPublic: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState('');
   const [error, setError] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    setIsVisible(true);
     fetchPlans();
   }, []);
 
@@ -71,183 +74,288 @@ const PricingPublic: React.FC = () => {
     return `$${pricePerCredit.toFixed(3)} per message`;
   };
 
+  // Map plan IDs to our custom names and features
+  const getEnhancedPlanData = (plan: PaymentPlan) => {
+    const planMapping: Record<string, { 
+      name: string; 
+      emoji: string; 
+      features: string[]; 
+      isPopular?: boolean;
+      description: string;
+    }> = {
+      'plan_1': {
+        name: 'Starter Pack',
+        emoji: '🚀',
+        description: 'Perfect for testing the waters',
+        features: [
+          '100 Personalized DMs',
+          'AI-powered profile analysis',
+          'Credits never expire'
+        ]
+      },
+      'plan_2': {
+        name: 'Growth Pack',
+        emoji: '📈',
+        description: 'Best value for growing brands',
+        isPopular: true,
+        features: [
+          '500 Personalized DMs',
+          'AI-powered profile analysis',
+          'Credits never expire',
+          'Best value for growing brands'
+        ]
+      },
+      'plan_3': {
+        name: 'Pro Pack',
+        emoji: '⚡',
+        description: 'Scale your outreach empire',
+        features: [
+          '1500 Personalized DMs',
+          'AI-powered profile analysis',
+          'Priority support',
+          'Credits never expire'
+        ]
+      }
+    };
+
+    return planMapping[plan.plan_id] || {
+      name: plan.name,
+      emoji: '💎',
+      description: plan.description,
+      features: [
+        `${plan.credits} Personalized DMs`,
+        'AI-powered profile analysis',
+        'Credits never expire'
+      ]
+    };
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-hero-gradient flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-electric-blue"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center">
-              <span className="text-2xl font-black text-gray-900 font-inter">DMify</span>
-            </Link>
-            
-            <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <Link to="/app/dashboard" className="btn-primary">
-                  Go to Dashboard
-                </Link>
-              ) : (
-                <>
-                  <Link to="/login" className="text-gray-600 hover:text-gray-900">
-                    Sign In
-                  </Link>
-                  <Link to="/signup" className="btn-primary">
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-black text-gray-900 font-inter mb-4">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Pay only for what you use. Generate personalized Instagram DMs with our AI-powered platform.
-          </p>
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-            <p className="text-blue-800 font-medium">🎉 New users get 10 free messages to start!</p>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg max-w-md mx-auto">
-            {error}
-          </div>
-        )}
-
-        {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-          {plans.map((plan) => (
-            <div
-              key={plan.plan_id}
-              className={`bg-white rounded-lg shadow-lg p-8 relative ${
-                plan.plan_id === 'plan_2' 
-                  ? 'border-2 border-blue-500 transform scale-105' 
-                  : 'border border-gray-200'
-              }`}
-            >
-              {plan.plan_id === 'plan_2' && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                    Most Popular
-                  </span>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                <div className="text-4xl font-black text-gray-900 mb-1">
-                  {formatPrice(plan.amount)}
-                </div>
-                <div className="text-sm text-gray-500 mb-4">
-                  {getPricePerCredit(plan.amount, plan.credits)}
-                </div>
-                <div className="text-lg text-blue-600 font-semibold mb-6">
-                  {plan.credits} Messages
-                </div>
-                
-                <ul className="text-left space-y-3 mb-8">
-                  <li className="flex items-center">
-                    <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Personalized Instagram DMs
-                  </li>
-                  <li className="flex items-center">
-                    <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    AI-powered profile analysis
-                  </li>
-                  <li className="flex items-center">
-                    <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    High conversion rates
-                  </li>
-                  <li className="flex items-center">
-                    <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    Credits never expire
-                  </li>
-                </ul>
-                
-                <button
-                  onClick={() => handlePurchase(plan.plan_id)}
-                  disabled={purchasing === plan.plan_id}
-                  className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
-                    plan.plan_id === 'plan_2'
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {purchasing === plan.plan_id ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
-                      Processing...
-                    </div>
-                  ) : isAuthenticated ? (
-                    'Purchase Credits'
-                  ) : (
-                    'Sign Up & Purchase'
-                  )}
-                </button>
-                
-                <p className="text-xs text-gray-500 mt-2">
-                  💰 Have a promo code? Enter it at checkout!
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+    <>
+      <SEOHead
+        title="DMify Pricing | AI Instagram DM Generator Plans"
+        description="Choose the perfect plan for your Instagram outreach needs. Generate AI-powered personalized DMs with transparent pricing. 10 free messages included."
+        keywords="DMify pricing, Instagram DM automation pricing, AI Instagram DM generator cost, Instagram outreach tool pricing"
+        canonical="https://dmify.app/pricing"
+      />
+      
+      <div className="min-h-screen bg-hero-gradient relative overflow-hidden">
+        {/* Floating Orbs */}
+        <div className="floating-orb bg-electric-blue w-64 h-64 top-20 left-20 blur-3xl"></div>
+        <div className="floating-orb bg-neon-purple w-96 h-96 bottom-20 right-32 blur-3xl"></div>
         
-        <div className="mt-12 text-center">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 max-w-2xl mx-auto">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Why Choose DMify?</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">🎯 Higher Response Rates</h4>
-                <p className="text-gray-600 text-sm">Our AI analyzes profiles to create personalized messages that actually get responses.</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">⚡ Save Time</h4>
-                <p className="text-gray-600 text-sm">Generate perfect DMs in seconds instead of spending hours crafting messages.</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">🔒 Secure & Safe</h4>
-                <p className="text-gray-600 text-sm">Your data is protected with enterprise-grade security. We never store your Instagram credentials.</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">📈 Proven Results</h4>
-                <p className="text-gray-600 text-sm">Join thousands of users who have increased their conversion rates by 300%+.</p>
+        {/* Header */}
+        <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <Link to="/" className="flex items-center">
+                <span className="text-2xl font-black text-primary-text font-space">DMify</span>
+              </Link>
+              
+              <div className="flex items-center space-x-4">
+                {isAuthenticated ? (
+                  <Link to="/app/dashboard" className="btn-primary">
+                    Go to Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" className="text-secondary-text hover:text-primary-text font-medium transition-colors">
+                      Sign In
+                    </Link>
+                    <Link to="/signup" className="btn-primary">
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>Secure payment processing powered by Stripe</p>
-          <p className="mt-1">
-            Questions? <Link to="mailto:support@dmify.com" className="text-blue-600 hover:text-blue-500">Contact our support team</Link>
-          </p>
-        </div>
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Hero Section */}
+          <div className={`text-center mb-16 transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-text mb-6 font-space leading-tight">
+              💡 Simple, Transparent Pricing —{' '}
+              <span className="gradient-text">Pay Only for the DMs You Send</span>
+            </h1>
+            <h2 className="text-xl md:text-2xl text-secondary-text mb-8 max-w-4xl mx-auto leading-relaxed">
+              Generate AI-powered, personalized Instagram DMs that convert. Choose a plan that fits your outreach goals.
+            </h2>
+            <div className="glass-card max-w-md mx-auto">
+              <p className="text-electric-blue font-bold text-lg">🎉 Get 10 free messages when you sign up today!</p>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mb-8 bg-red-50/80 backdrop-blur-glass border border-red-200 text-red-600 px-4 py-3 rounded-20 max-w-md mx-auto">
+              {error}
+            </div>
+          )}
+
+          {/* Pricing Cards */}
+          <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-20 transition-all duration-800 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            {plans.map((plan) => {
+              const enhancedPlan = getEnhancedPlanData(plan);
+              const isPopular = enhancedPlan.isPopular;
+              
+              return (
+                <div
+                  key={plan.plan_id}
+                  className={`glass-card relative transition-all duration-300 hover:scale-102 flex flex-col h-full ${
+                    isPopular 
+                      ? 'ring-2 ring-electric-blue shadow-glow animate-pulse' 
+                      : 'hover:shadow-glass'
+                  }`}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-cta-gradient text-white px-6 py-2 rounded-full text-sm font-bold shadow-glow">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="text-center flex-1 flex flex-col pt-4">
+                    <div className="text-4xl mb-4">{enhancedPlan.emoji}</div>
+                    <h3 className="text-2xl font-bold text-primary-text mb-2 font-space">{enhancedPlan.name}</h3>
+                    <div className="text-4xl font-black text-primary-text mb-2">
+                      {formatPrice(plan.amount)}
+                    </div>
+                    <div className="text-sm text-secondary-text mb-6">
+                      {getPricePerCredit(plan.amount, plan.credits)}
+                    </div>
+                    
+                    <ul className="text-left space-y-3 mb-8 flex-1">
+                      {enhancedPlan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center text-sm">
+                          <div className="w-5 h-5 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <span className="text-secondary-text">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <button
+                      onClick={() => handlePurchase(plan.plan_id)}
+                      disabled={purchasing === plan.plan_id}
+                      className={`w-full py-4 px-6 rounded-full font-bold text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 ${
+                        isPopular
+                          ? 'bg-cta-gradient text-white hover:shadow-glow'
+                          : 'border-2 border-electric-blue text-electric-blue bg-transparent hover:bg-electric-blue hover:text-white'
+                      }`}
+                    >
+                      {purchasing === plan.plan_id ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                          Processing...
+                        </div>
+                      ) : (
+                        'Get Started'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Trust & Security Section */}
+          <div className={`mb-16 transition-all duration-800 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-black text-primary-text mb-4 font-space">
+                Trusted by Marketers, Creators, and Agencies
+              </h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="text-center group">
+                <div className="glass-card hover:scale-105 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🔒 Secure Payments</h3>
+                  <p className="text-secondary-text leading-relaxed">
+                    Powered by Stripe with enterprise-grade encryption. Your payment data is always protected.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center group">
+                <div className="glass-card hover:scale-105 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">📈 Proven Results</h3>
+                  <p className="text-secondary-text leading-relaxed">
+                    Users see up to 3x higher replies vs copy-paste DMs. Real results from real campaigns.
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-center group">
+                <div className="glass-card hover:scale-105 transition-all duration-300">
+                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🤝 No-Risk Guarantee</h3>
+                  <p className="text-secondary-text leading-relaxed">
+                    Credits never expire. Cancel anytime. Start with confidence knowing there's no risk.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Final CTA */}
+          <div className={`text-center transition-all duration-800 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div className="glass-card max-w-2xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-black text-primary-text mb-6 font-space">
+                Ready to Scale Your Instagram Outreach?
+              </h2>
+              <p className="text-lg text-secondary-text mb-8 leading-relaxed">
+                Join hundreds of marketers, creators, and agencies who are already using DMify to build authentic connections and grow their business.
+              </p>
+              <Link
+                to="/signup"
+                className="btn-primary text-xl px-12 py-4 inline-block hover:scale-105 transition-all duration-300"
+              >
+Start for Free
+              </Link>
+              <p className="text-secondary-text mt-4">
+                🎉 10 free messages included • No credit card required
+              </p>
+            </div>
+          </div>
+
+          {/* Footer Note */}
+          <div className="mt-12 text-center text-sm text-secondary-text">
+            <p>Secure payment processing powered by Stripe</p>
+            <p className="mt-2">
+              Questions? <a href="mailto:support@dmify.app" className="text-electric-blue hover:text-neon-purple transition-colors">Contact our support team</a>
+            </p>
+          </div>
+        </main>
+      </div>
+    </>
   );
 };
 
