@@ -406,16 +406,14 @@
   }
   
   .credits-buy-btn {
-    @apply w-full px-4 py-3 border-2 border-electric-blue text-electric-blue rounded-full text-sm font-semibold hover:bg-electric-blue hover:text-white transition-all duration-300;
+    @apply ml-auto px-4 py-3 border-2 border-electric-blue text-electric-blue rounded-full text-sm font-semibold hover:bg-electric-blue hover:text-white transition-all duration-300 block text-center;
   }
   
   .generate-form {
     @apply space-y-4;
   }
   
-  .queue-toggle {
-    @apply flex items-center justify-between mb-4;
-  }
+
   
   .username-input-wrapper {
     @apply relative;

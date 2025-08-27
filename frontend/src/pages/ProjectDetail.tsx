@@ -52,13 +52,11 @@ const ProjectDetail: React.FC = () => {
   const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [dmJobs, setDmJobs] = useState<DMJob[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
   const [queueing, setQueueing] = useState(false);
   
   // Form state
   const [username, setUsername] = useState('');
   const [usernames, setUsernames] = useState<string[]>([]);
-  const [useAsyncMode, setUseAsyncMode] = useState(true);
   
   // UI state
   const [error, setError] = useState('');
@@ -188,38 +186,10 @@ const ProjectDetail: React.FC = () => {
       return;
     }
 
-    if (useAsyncMode) {
-      handleQueueDMs(allUsernames);
-    } else {
-      handleSyncDM(allUsernames[0]); // Generate only first one in sync mode
-    }
+    handleQueueDMs(allUsernames);
   };
 
-  const handleSyncDM = async (usernameToGenerate: string) => {
-    setGenerating(true);
-    setError('');
 
-    try {
-      const result = await apiService.generateDM(id!, usernameToGenerate);
-      
-      if (result.success) {
-        showToast('success', 'DM generated successfully!');
-        setUsername('');
-        setUsernames([]);
-        fetchProjectData();
-      } else {
-        setError(result.error || 'Failed to generate DM');
-      }
-    } catch (error: any) {
-      if (error.response?.status === 402) {
-        setError(error.response?.data?.detail || 'Insufficient credits');
-      } else {
-        setError(error.response?.data?.detail || 'Failed to generate DM');
-      }
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const handleQueueDMs = async (usernamesToQueue: string[]) => {
     setQueueing(true);
@@ -436,38 +406,15 @@ const ProjectDetail: React.FC = () => {
                 />
               </div>
               
-              {credits.credits <= 5 && (
-                <Link to="/app/payments" className="credits-buy-btn">
-                  Buy Credits
-                </Link>
-              )}
+              <Link to="/app/payments" className="credits-buy-btn">
+                Buy More
+              </Link>
             </div>
           )}
 
           {/* Generate DM */}
           <div className="project-view-card accent">
-            <div className="queue-toggle">
-              <span className="project-card-title" style={{ marginBottom: 0 }}>Generate DM</span>
-              <div className="flex items-center gap-2">
-                <label className="flex items-center text-sm">
-                  <input
-                    type="checkbox"
-                    checked={useAsyncMode}
-                    onChange={(e) => setUseAsyncMode(e.target.checked)}
-                    className="mr-2 h-4 w-4 text-electric-blue focus:ring-electric-blue border-gray-300 rounded"
-                  />
-                  Queue Mode
-                </label>
-                <button
-                  title="We'll process in the background so you can keep working"
-                  className="text-secondary-text hover:text-primary-text"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
+            <span className="project-card-title">Generate DM</span>
 
             <form onSubmit={handleGenerateDM} className="generate-form">
               <div>
@@ -483,10 +430,10 @@ const ProjectDetail: React.FC = () => {
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
-                        addUsername();
+                        handleGenerateDM(e);
                       }
                     }}
-                    disabled={generating || queueing}
+                    disabled={queueing}
                   />
                 </div>
                 
@@ -519,23 +466,16 @@ const ProjectDetail: React.FC = () => {
               <div className="flex flex-col gap-2">
                 <button
                   type="submit"
-                  disabled={generating || queueing || estimateCredits() === 0 || (credits?.credits ?? 0) <= 0}
+                  disabled={queueing || estimateCredits() === 0 || (credits?.credits ?? 0) <= 0}
                   className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {generating ? (
-                    <div className="flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Generating...
-                    </div>
-                  ) : queueing ? (
+                  {queueing ? (
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Queueing...
                     </div>
-                  ) : useAsyncMode ? (
-                    'Add to Queue'
                   ) : (
-                    'Generate Now'
+                    'Add to Queue'
                   )}
                 </button>
                 
@@ -552,7 +492,7 @@ const ProjectDetail: React.FC = () => {
         {/* Right Content */}
         <div className="space-y-6">
           {/* Processing Queue */}
-          {useAsyncMode && activeJobs.length > 0 && (
+          {activeJobs.length > 0 && (
             <div className="project-view-card">
               <h3 className="project-card-title" style={{ marginBottom: '1rem' }}>
                 Processing Queue ({activeJobs.length} active)
