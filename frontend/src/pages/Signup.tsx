@@ -68,7 +68,16 @@ const Signup: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  const getPasswordStrength = (password: string): { strength: number; label: string; color: string } => {
+  const getPasswordStrength = (password: string): { strength: number; label: string; color: string; show: boolean } => {
+    if (!password.length) {
+      return {
+        strength: 0,
+        label: '',
+        color: 'bg-gray-200',
+        show: false
+      };
+    }
+
     let strength = 0;
     if (password.length >= 8) strength++;
     if (/[A-Z]/.test(password)) strength++;
@@ -76,13 +85,14 @@ const Signup: React.FC = () => {
     if (/[0-9]/.test(password)) strength++;
     if (/[^A-Za-z0-9]/.test(password)) strength++;
 
-    const labels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-    const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
+    const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    const colors = ['bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500', 'bg-emerald-500'];
     
     return {
       strength,
-      label: labels[strength] || 'Very Weak',
-      color: colors[strength] || 'bg-red-500'
+      label: labels[strength] || 'Weak',
+      color: colors[strength] || 'bg-orange-500',
+      show: true
     };
   };
 
@@ -251,7 +261,7 @@ const Signup: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                   />
-                  {formData.password && (
+                  {passwordStrength.show && (
                     <div className="mt-2">
                       <div className="flex space-x-1 mb-1">
                         {[...Array(5)].map((_, i) => (
@@ -411,7 +421,7 @@ const Signup: React.FC = () => {
                     value={formData.password}
                     onChange={handleChange}
                   />
-                  {formData.password && (
+                  {passwordStrength.show && (
                     <div className="mt-3">
                       <div className="flex space-x-1 mb-2">
                         {[...Array(5)].map((_, i) => (

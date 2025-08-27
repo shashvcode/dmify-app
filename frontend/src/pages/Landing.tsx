@@ -298,6 +298,9 @@ const Landing: React.FC = () => {
                             <div className="bg-white/20 rounded-lg p-3 border border-white/30">
                               <p className="text-secondary-text text-sm"><span className="font-semibold text-primary-text">Offer:</span> Free 30-day trial</p>
                             </div>
+                            <div className="bg-white/20 rounded-lg p-3 border border-white/30">
+                              <p className="text-secondary-text text-sm"><span className="font-semibold text-primary-text">Your Name:</span> John</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -305,14 +308,14 @@ const Landing: React.FC = () => {
                         <h3 className="text-xl font-bold text-primary-text mb-6 font-space">Generated Personalized DM</h3>
                         <div className="bg-gradient-to-br from-electric-blue/20 to-neon-purple/20 rounded-20 p-6 text-left backdrop-blur-glass border border-white/30">
                           <p className="text-primary-text leading-relaxed">
-                            "Hey Elon! 🚀 Love how you're revolutionizing multiple industries with Tesla, SpaceX, and Neuralink. 
+                            Hey Elon! 🚀 Love how you're revolutionizing multiple industries with Tesla, SpaceX, and Neuralink. 
                             Your vision for sustainable tech and space exploration is genuinely inspiring. I've been helping 
                             tech innovators like yourself streamline their AI workflows, and the productivity gains have been 
                             incredible. Would you be interested in a quick chat about how we're helping visionaries scale 
                             their operations? 
                             <br/><br/>
                             Best regards,<br/>
-                            John"
+                            John
                           </p>
                         </div>
                       </div>
