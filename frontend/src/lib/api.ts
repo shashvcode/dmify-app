@@ -185,6 +185,16 @@ class ApiService {
     return response.data;
   }
 
+  async getUserSubscription() {
+    const response = await this.api.get('/payments/subscription');
+    return response.data;
+  }
+
+  async cancelSubscription() {
+    const response = await this.api.post('/payments/cancel-subscription');
+    return response.data;
+  }
+
   async deleteAccount() {
     const response = await this.api.delete('/auth/delete-account');
     return response.data;

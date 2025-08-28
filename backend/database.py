@@ -20,6 +20,7 @@ verification_codes_collection = db.verification_codes
 user_credits_collection = db.user_credits
 payment_transactions_collection = db.payment_transactions
 dm_generation_jobs_collection = db.dm_generation_jobs
+user_subscriptions_collection = db.user_subscriptions
 
 class Database:
     @staticmethod
@@ -280,7 +281,9 @@ class Database:
         amount: int, 
         credits: int,
         price_id: str,
-        status: str = "pending"
+        status: str = "pending",
+        transaction_type: str = "one_time",
+        subscription_id: str = None
     ) -> str:
         """Create a payment transaction record"""
         transaction_doc = {
@@ -290,6 +293,8 @@ class Database:
             "credits": credits,
             "price_id": price_id,
             "status": status,  # pending, completed, failed
+            "transaction_type": transaction_type,  # one_time, subscription
+            "subscription_id": subscription_id,  # for subscription transactions
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow()
         }
@@ -535,4 +540,185 @@ class Database:
             return result.modified_count > 0
         except Exception as e:
             print(f"Error marking account for deletion: {e}")
+            return False
+    
+    # Subscription Management Methods
+    @staticmethod
+    def create_subscription(
+        user_id: str,
+        stripe_subscription_id: str,
+        stripe_customer_id: str,
+        plan_id: str,
+        status: str,
+        monthly_allowance: int,
+        current_period_start: datetime,
+        current_period_end: datetime
+    ) -> str:
+        """Create a new subscription record"""
+        try:
+            subscription_doc = {
+                "user_id": ObjectId(user_id),
+                "stripe_subscription_id": stripe_subscription_id,
+                "stripe_customer_id": stripe_customer_id,
+                "plan_id": plan_id,
+                "status": status,  # active, past_due, canceled, incomplete
+                "monthly_allowance": monthly_allowance,
+                "used_this_month": 0,
+                "current_period_start": current_period_start,
+                "current_period_end": current_period_end,
+                "cancel_at_period_end": False,
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            result = user_subscriptions_collection.insert_one(subscription_doc)
+            return str(result.inserted_id)
+        except Exception as e:
+            print(f"Error creating subscription: {e}")
+            return None
+    
+    @staticmethod
+    def get_user_subscription(user_id: str) -> Optional[Dict[str, Any]]:
+        """Get active subscription for user"""
+        try:
+            subscription = user_subscriptions_collection.find_one({
+                "user_id": ObjectId(user_id),
+                "status": {"$in": ["active", "past_due"]}
+            })
+            if subscription:
+                subscription["_id"] = str(subscription["_id"])
+                subscription["user_id"] = str(subscription["user_id"])
+            return subscription
+        except Exception as e:
+            print(f"Error getting user subscription: {e}")
+            return None
+    
+    @staticmethod
+    def get_subscription_by_stripe_id(stripe_subscription_id: str) -> Optional[Dict[str, Any]]:
+        """Get subscription by Stripe subscription ID"""
+        try:
+            subscription = user_subscriptions_collection.find_one({
+                "stripe_subscription_id": stripe_subscription_id
+            })
+            if subscription:
+                subscription["_id"] = str(subscription["_id"])
+                subscription["user_id"] = str(subscription["user_id"])
+            return subscription
+        except Exception as e:
+            print(f"Error getting subscription by Stripe ID: {e}")
+            return None
+    
+    @staticmethod
+    def update_subscription(
+        stripe_subscription_id: str,
+        updates: Dict[str, Any]
+    ) -> bool:
+        """Update subscription status and details"""
+        try:
+            updates["updated_at"] = datetime.utcnow()
+            result = user_subscriptions_collection.update_one(
+                {"stripe_subscription_id": stripe_subscription_id},
+                {"$set": updates}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error updating subscription: {e}")
+            return False
+    
+    @staticmethod
+    def use_monthly_message(user_id: str) -> bool:
+        """Use one message from monthly allowance. Returns True if successful."""
+        try:
+            # First check if user has active subscription
+            subscription = Database.get_user_subscription(user_id)
+            if subscription and subscription["used_this_month"] < subscription["monthly_allowance"]:
+                # Use from subscription allowance
+                result = user_subscriptions_collection.update_one(
+                    {
+                        "user_id": ObjectId(user_id),
+                        "status": {"$in": ["active", "past_due"]},
+                        "used_this_month": {"$lt": "$monthly_allowance"}
+                    },
+                    {
+                        "$inc": {"used_this_month": 1},
+                        "$set": {"updated_at": datetime.utcnow()}
+                    }
+                )
+                if result.modified_count > 0:
+                    return True
+            
+            # Fall back to credit system for backward compatibility
+            return Database.use_credit(user_id)
+        except Exception as e:
+            print(f"Error using monthly message: {e}")
+            return False
+    
+    @staticmethod
+    def get_user_message_allowance(user_id: str) -> Dict[str, int]:
+        """Get user's total message allowance (subscription + credits)"""
+        try:
+            # Get subscription allowance
+            subscription = Database.get_user_subscription(user_id)
+            subscription_remaining = 0
+            if subscription:
+                subscription_remaining = max(0, subscription["monthly_allowance"] - subscription["used_this_month"])
+            
+            # Get credit balance
+            credit_balance = Database.get_user_credits(user_id)
+            
+            return {
+                "subscription_remaining": subscription_remaining,
+                "credits_remaining": credit_balance,
+                "total_remaining": subscription_remaining + credit_balance,
+                "has_subscription": subscription is not None
+            }
+        except Exception as e:
+            print(f"Error getting message allowance: {e}")
+            return {
+                "subscription_remaining": 0,
+                "credits_remaining": 0,
+                "total_remaining": 0,
+                "has_subscription": False
+            }
+    
+    @staticmethod
+    def reset_monthly_usage(stripe_subscription_id: str) -> bool:
+        """Reset monthly usage for a subscription (called at period start)"""
+        try:
+            result = user_subscriptions_collection.update_one(
+                {"stripe_subscription_id": stripe_subscription_id},
+                {
+                    "$set": {
+                        "used_this_month": 0,
+                        "updated_at": datetime.utcnow()
+                    }
+                }
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error resetting monthly usage: {e}")
+            return False
+    
+    @staticmethod
+    def cancel_subscription(stripe_subscription_id: str, cancel_at_period_end: bool = True) -> bool:
+        """Cancel or mark subscription for cancellation"""
+        try:
+            if cancel_at_period_end:
+                updates = {
+                    "cancel_at_period_end": True,
+                    "updated_at": datetime.utcnow()
+                }
+            else:
+                updates = {
+                    "status": "canceled",
+                    "cancel_at_period_end": False,
+                    "updated_at": datetime.utcnow()
+                }
+            
+            result = user_subscriptions_collection.update_one(
+                {"stripe_subscription_id": stripe_subscription_id},
+                {"$set": updates}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error canceling subscription: {e}")
             return False

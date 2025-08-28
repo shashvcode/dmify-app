@@ -6,6 +6,7 @@ from backend.payment_service import PaymentService
 from typing import List, Dict, Any, Optional
 import logging
 import os
+import stripe
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -16,7 +17,7 @@ class PaymentPlan(BaseModel):
     plan_id: str
     name: str
     description: str
-    credits: int
+    messages: int  # Monthly message allowance
     amount: int
     price_id: str
 
@@ -29,6 +30,9 @@ class CreditInfo(BaseModel):
     credits: int
     total_earned: int
     total_used: int
+    subscription_remaining: int
+    has_subscription: bool
+    total_remaining: int
 
 @router.get("/plans", response_model=List[PaymentPlan])
 async def get_payment_plans():
@@ -40,7 +44,7 @@ async def get_payment_plans():
             "plan_id": plan_id,
             "name": plan_data["name"],
             "description": plan_data["description"],
-            "credits": plan_data["credits"],
+            "messages": plan_data["messages"],
             "amount": plan_data["amount"],
             "price_id": plan_data["price_id"]
         }
@@ -84,8 +88,12 @@ async def create_checkout_session(
 
 @router.get("/credits", response_model=CreditInfo)
 async def get_user_credits(current_user: dict = Depends(get_current_user)):
-    """Get current user's credit information"""
+    """Get current user's credit and subscription information"""
     
+    # Get message allowance (includes both subscription and credits)
+    allowance_info = Database.get_user_message_allowance(current_user["_id"])
+    
+    # Get credit info for backward compatibility
     credit_info = Database.get_user_credit_info(current_user["_id"])
     
     if not credit_info:
@@ -94,9 +102,12 @@ async def get_user_credits(current_user: dict = Depends(get_current_user)):
         credit_info = Database.get_user_credit_info(current_user["_id"])
     
     return {
-        "credits": credit_info.get("credits", 0),
+        "credits": allowance_info["credits_remaining"],
         "total_earned": credit_info.get("total_earned", 0),
-        "total_used": credit_info.get("total_used", 0)
+        "total_used": credit_info.get("total_used", 0),
+        "subscription_remaining": allowance_info["subscription_remaining"],
+        "has_subscription": allowance_info["has_subscription"],
+        "total_remaining": allowance_info["total_remaining"]
     }
 
 @router.post("/webhook")
@@ -129,7 +140,7 @@ async def stripe_webhook(request: Request):
             
             logging.info(f"Processing checkout.session.completed for session: {session_id}")
             
-            # Handle successful payment
+            # Handle successful payment (both one-time and subscription)
             success = PaymentService.handle_successful_payment(session_id)
             if not success:
                 logging.error(f"Failed to process payment for session: {session_id}")
@@ -146,6 +157,38 @@ async def stripe_webhook(request: Request):
             success = PaymentService.handle_successful_payment(session_id)
             if not success:
                 logging.error(f"Failed to process delayed payment for session: {session_id}")
+        
+        elif event['type'] == 'customer.subscription.created':
+            subscription = event['data']['object']
+            logging.info(f"Processing customer.subscription.created for subscription: {subscription['id']}")
+            # Subscription creation is handled in checkout.session.completed
+        
+        elif event['type'] == 'customer.subscription.updated':
+            subscription = event['data']['object']
+            logging.info(f"Processing customer.subscription.updated for subscription: {subscription['id']}")
+            
+            success = PaymentService.handle_subscription_updated(subscription)
+            if not success:
+                logging.error(f"Failed to process subscription update for: {subscription['id']}")
+        
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription = event['data']['object']
+            logging.info(f"Processing customer.subscription.deleted for subscription: {subscription['id']}")
+            
+            # Mark subscription as canceled in our database
+            success = PaymentService.handle_subscription_updated(subscription)
+            if not success:
+                logging.error(f"Failed to process subscription deletion for: {subscription['id']}")
+        
+        elif event['type'] == 'invoice.payment_succeeded':
+            invoice = event['data']['object']
+            logging.info(f"Processing invoice.payment_succeeded for invoice: {invoice['id']}")
+            
+            # Reset monthly usage for subscription renewals
+            if invoice.get('subscription'):
+                success = PaymentService.handle_invoice_payment_succeeded(invoice)
+                if not success:
+                    logging.error(f"Failed to process invoice payment for: {invoice['id']}")
         
         else:
             logging.info(f"Unhandled event type: {event['type']}")
@@ -173,8 +216,70 @@ async def get_payment_history(current_user: dict = Depends(get_current_user)):
             "amount": transaction["amount"],
             "credits": transaction["credits"],
             "status": transaction["status"],
+            "transaction_type": transaction.get("transaction_type", "one_time"),
             "created_at": transaction["created_at"].isoformat(),
             "updated_at": transaction["updated_at"].isoformat()
         })
     
     return formatted_history
+
+@router.get("/subscription")
+async def get_user_subscription(current_user: dict = Depends(get_current_user)):
+    """Get user's current subscription information"""
+    
+    subscription = Database.get_user_subscription(current_user["_id"])
+    
+    if not subscription:
+        return {"has_subscription": False}
+    
+    return {
+        "has_subscription": True,
+        "subscription_id": subscription["stripe_subscription_id"],
+        "plan_id": subscription["plan_id"],
+        "status": subscription["status"],
+        "monthly_allowance": subscription["monthly_allowance"],
+        "used_this_month": subscription["used_this_month"],
+        "current_period_start": subscription["current_period_start"].isoformat(),
+        "current_period_end": subscription["current_period_end"].isoformat(),
+        "cancel_at_period_end": subscription["cancel_at_period_end"]
+    }
+
+@router.post("/cancel-subscription")
+async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    """Cancel user's subscription at period end"""
+    
+    subscription = Database.get_user_subscription(current_user["_id"])
+    
+    if not subscription:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No active subscription found"
+        )
+    
+    try:
+        # Cancel subscription in Stripe
+        stripe.Subscription.modify(
+            subscription["stripe_subscription_id"],
+            cancel_at_period_end=True
+        )
+        
+        # Update our database
+        success = Database.cancel_subscription(
+            subscription["stripe_subscription_id"],
+            cancel_at_period_end=True
+        )
+        
+        if success:
+            return {"message": "Subscription will be canceled at the end of the current period"}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to cancel subscription"
+            )
+            
+    except Exception as e:
+        logging.error(f"Error canceling subscription: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel subscription"
+        )
