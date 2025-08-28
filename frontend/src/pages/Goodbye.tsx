@@ -12,22 +12,22 @@ const Goodbye: React.FC = () => {
             </svg>
           </div>
           
-          <h1 className="text-2xl font-bold text-primary-text mb-4">Account Deletion Requested</h1>
+          <h1 className="text-2xl font-bold text-primary-text mb-4">Account Successfully Deleted</h1>
           
           <p className="text-secondary-text mb-6 leading-relaxed">
-            Your DMify account has been marked for deletion. Your data will be permanently removed in 30 days.
+            Your DMify account and all associated data have been permanently deleted.
           </p>
           
           <p className="text-sm text-secondary-text mb-8">
-            If you change your mind, simply log back in within 30 days to reactivate your account.
+            Thank you for using DMify. We're sorry to see you go and hope you'll consider us again in the future.
           </p>
           
           <div className="space-y-3">
             <Link 
-              to="/login" 
+              to="/signup" 
               className="block w-full bg-gradient-to-r from-electric-blue to-neon-purple text-white py-3 px-6 rounded-full font-semibold hover:shadow-lg transition-all"
             >
-              Sign Back In
+              Create New Account
             </Link>
             
             <Link 

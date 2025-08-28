@@ -94,7 +94,11 @@ const Layout: React.FC = () => {
         <div className="navbar-container">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
-            DMify
+            <img 
+              src="/dmifylogo.png" 
+              alt="DMify" 
+              className="h-9 sm:h-10 w-auto"
+            />
           </Link>
 
           {/* Primary Navigation */}

@@ -61,6 +61,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(response.user);
       return response;
     } catch (error) {
+      // Ensure user state is cleared on login failure
+      setUser(null);
       throw error;
     }
   };

@@ -77,11 +77,14 @@ async def generate_dm_message(
                 detail="Failed to use message allowance. Please try again or check your subscription status."
             )
 
+        # Extract first name only for more natural messaging
+        first_name = current_user["name"].split()[0] if current_user["name"] else "there"
+        
         result = scrape(
             username=username,
             product_info=project["product_info"],
             offer_info=project["offer_info"],
-            name=current_user["name"]
+            name=first_name
         )
         
         if not result["success"]:
@@ -325,12 +328,15 @@ def process_dm_job(job_id: str):
             return
         
         try:
+            # Extract first name only for more natural messaging
+            first_name = user["name"].split()[0] if user["name"] else "there"
+            
             # Run the scraping
             result = scrape(
                 username=job["username"],
                 product_info=project["product_info"],
                 offer_info=project["offer_info"],
-                name=user["name"]
+                name=first_name
             )
             
             if not result["success"]:

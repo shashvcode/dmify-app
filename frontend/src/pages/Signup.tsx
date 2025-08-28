@@ -202,7 +202,13 @@ const Signup: React.FC = () => {
       <nav className="bg-white/80 backdrop-blur-md border-b border-white/20 relative z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="text-2xl font-black text-primary-text font-space">DMify</Link>
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/dmifylogo.png" 
+                alt="DMify" 
+                className="h-9 sm:h-10 w-auto"
+              />
+            </Link>
             <div className="flex items-center space-x-4">
               <Link to="/pricing" className="text-secondary-text hover:text-primary-text font-medium transition-colors">
                 Pricing

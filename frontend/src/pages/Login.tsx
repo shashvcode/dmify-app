@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -28,7 +28,8 @@ const Login: React.FC = () => {
   }, [location.state]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    // Only navigate if user is authenticated AND auth context is not loading
+    if (isAuthenticated && !authLoading && user) {
       // Check for return URL with plan parameter
       const returnTo = searchParams.get('returnTo');
       const planId = searchParams.get('plan');
@@ -41,7 +42,7 @@ const Login: React.FC = () => {
         navigate(from, { replace: true });
       }
     }
-  }, [isAuthenticated, navigate, location.state, searchParams]);
+  }, [isAuthenticated, authLoading, user, navigate, location.state, searchParams]);
 
   const validateForm = () => {
     const newErrors: any = {};
@@ -67,14 +68,23 @@ const Login: React.FC = () => {
 
     setLoading(true);
     setSuccessMessage('');
+    setErrors({}); // Clear any existing errors
     
     try {
       await login(formData.email, formData.password);
+      // On success, the useEffect will handle navigation
+      // Set loading to false so button returns to normal state during navigation
+      setLoading(false);
     } catch (error: any) {
+      // Always set loading to false when there's an error
+      setLoading(false);
+      
       const errorMessage = error.response?.data?.detail;
       
       if (errorMessage === 'Please verify your email before logging in') {
+        // This is the only case where we want to navigate on error
         navigate('/verify-email', { state: { email: formData.email } });
+        return;
       } else if (errorMessage === 'Incorrect email or password') {
         setErrors({ submit: 'Invalid email or password. Please check your credentials and try again.' });
       } else if (errorMessage?.includes('email')) {
@@ -84,8 +94,6 @@ const Login: React.FC = () => {
       } else {
         setErrors({ submit: errorMessage || 'Something went wrong. Please try again.' });
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -98,8 +106,8 @@ const Login: React.FC = () => {
       setErrors((prev: any) => ({ ...prev, [name]: '' }));
     }
     
-    // Clear submit error when user makes any changes
-    if (errors.submit) {
+    // Only clear submit errors when user types in the email or password field (the main fields)
+    if (errors.submit && (name === 'email' || name === 'password')) {
       setErrors((prev: any) => ({ ...prev, submit: '' }));
     }
   };
@@ -121,7 +129,13 @@ const Login: React.FC = () => {
       <nav className="bg-white/80 backdrop-blur-md border-b border-white/20 fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <Link to="/" className="text-2xl font-black text-primary-text font-space">DMify</Link>
+            <Link to="/" className="flex items-center">
+              <img 
+                src="/dmifylogo.png" 
+                alt="DMify" 
+                className="h-9 sm:h-10 w-auto"
+              />
+            </Link>
             <div className="flex items-center space-x-4">
               <Link to="/pricing" className="text-secondary-text hover:text-primary-text font-medium transition-colors">
                 Pricing

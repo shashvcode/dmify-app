@@ -520,7 +520,18 @@ class Database:
     def delete_account_immediately(user_id: str) -> bool:
         """Permanently delete user account and all associated data immediately"""
         try:
+            import stripe
             user_object_id = ObjectId(user_id)
+            
+            # First, cancel any active Stripe subscriptions
+            subscriptions = list(user_subscriptions_collection.find({"user_id": user_id, "status": {"$in": ["active", "trialing", "past_due"]}}))
+            for subscription in subscriptions:
+                try:
+                    # Cancel subscription immediately in Stripe
+                    stripe.Subscription.delete(subscription["stripe_subscription_id"])
+                    print(f"Canceled Stripe subscription: {subscription['stripe_subscription_id']}")
+                except Exception as e:
+                    print(f"Warning: Failed to cancel Stripe subscription {subscription['stripe_subscription_id']}: {e}")
             
             # Delete all user's projects
             projects_collection.delete_many({"user_id": user_id})

@@ -203,7 +203,13 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center">
-              <Link to="/" className="text-3xl font-black text-primary-text font-space">DMify</Link>
+              <Link to="/" className="flex items-center">
+                <img 
+                  src="/dmifylogo.png" 
+                  alt="DMify" 
+                  className="h-10 sm:h-12 w-auto"
+                />
+              </Link>
             </div>
             <div className="flex items-center space-x-6">
               <Link
@@ -480,8 +486,14 @@ const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-8 md:mb-0">
-              <Link to="/" className="text-3xl font-black text-primary-text font-space">DMify</Link>
-              <p className="text-secondary-text mt-3 text-lg">AI Instagram DM Generator</p>
+              <Link to="/" className="flex items-center mb-3">
+                <img 
+                  src="/dmifylogo.png" 
+                  alt="DMify" 
+                  className="h-10 sm:h-12 w-auto"
+                />
+              </Link>
+              <p className="text-secondary-text text-lg">AI Instagram DM Generator</p>
             </div>
             <div className="flex space-x-8">
               <Link to="/pricing" className="text-secondary-text hover:text-primary-text font-medium transition-colors">Instagram DM Automation Pricing</Link>

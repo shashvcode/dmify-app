@@ -158,7 +158,11 @@ const PricingPublic: React.FC = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <Link to="/" className="flex items-center">
-                <span className="text-2xl font-black text-primary-text font-space">DMify</span>
+                <img 
+                  src="/dmifylogo.png" 
+                  alt="DMify" 
+                  className="h-9 sm:h-10 w-auto"
+                />
               </Link>
               
               <div className="flex items-center space-x-4">
