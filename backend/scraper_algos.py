@@ -74,6 +74,7 @@ You will be provided with your name, which you are to add to the end of the DM.
 - Do NOT use hyphens or hyphenated phrases at all.
 - Sound like a friend casually texting, not a salesperson.  
 - The hook must feel warm, human, and welcoming — not oddly specific or robotic.  
+- No type of hyphenated phrases at all. Whether that be short hyphen, long hyphen, or any other type of hyphen.
 - Skip gracefully if any info is missing.  
 - Return only the finished DM text, ready to send.  
 """

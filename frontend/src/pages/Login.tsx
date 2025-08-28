@@ -72,10 +72,17 @@ const Login: React.FC = () => {
       await login(formData.email, formData.password);
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail;
+      
       if (errorMessage === 'Please verify your email before logging in') {
         navigate('/verify-email', { state: { email: formData.email } });
+      } else if (errorMessage === 'Incorrect email or password') {
+        setErrors({ submit: 'Invalid email or password. Please check your credentials and try again.' });
+      } else if (errorMessage?.includes('email')) {
+        setErrors({ submit: 'Invalid email address. Please check and try again.' });
+      } else if (errorMessage?.includes('User not found')) {
+        setErrors({ submit: 'No account found with this email. Try signing up instead?' });
       } else {
-        setErrors({ submit: errorMessage || 'Invalid email or password' });
+        setErrors({ submit: errorMessage || 'Something went wrong. Please try again.' });
       }
     } finally {
       setLoading(false);
@@ -85,8 +92,15 @@ const Login: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear field-specific errors when user starts typing
     if (errors[name]) {
       setErrors((prev: any) => ({ ...prev, [name]: '' }));
+    }
+    
+    // Clear submit error when user makes any changes
+    if (errors.submit) {
+      setErrors((prev: any) => ({ ...prev, submit: '' }));
     }
   };
 
@@ -197,7 +211,14 @@ const Login: React.FC = () => {
 
               {errors.submit && (
                 <div className="bg-red-50/80 backdrop-blur-glass border border-red-200 text-red-600 px-4 py-3 rounded-20 text-sm">
-                  {errors.submit}
+                  <p>{errors.submit}</p>
+                  {(errors.submit.includes('No account found') || errors.submit.includes('sign up')) && (
+                    <p className="mt-2">
+                      <Link to="/signup" className="text-electric-blue hover:text-neon-purple font-medium transition-colors">
+                        Create an account instead →
+                      </Link>
+                    </p>
+                  )}
                 </div>
               )}
 

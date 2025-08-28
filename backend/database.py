@@ -517,29 +517,32 @@ class Database:
             return None
     
     @staticmethod
-    def mark_account_for_deletion(user_id: str) -> bool:
-        """Mark user account for deletion (soft delete with 30-day retention)"""
+    def delete_account_immediately(user_id: str) -> bool:
+        """Permanently delete user account and all associated data immediately"""
         try:
-            from datetime import datetime, timedelta
+            user_object_id = ObjectId(user_id)
             
-            deletion_date = datetime.utcnow() + timedelta(days=30)
+            # Delete all user's projects
+            projects_collection.delete_many({"user_id": user_id})
             
-            # Update user account with deletion flag
-            result = users_collection.update_one(
-                {"_id": ObjectId(user_id)},
-                {
-                    "$set": {
-                        "marked_for_deletion": True,
-                        "deletion_date": deletion_date,
-                        "marked_for_deletion_at": datetime.utcnow(),
-                        "account_status": "pending_deletion"
-                    }
-                }
-            )
+            # Delete all user's message generation history
+            messages_collection.delete_many({"user_id": user_id})
             
-            return result.modified_count > 0
+            # Delete user's credits/usage history
+            user_credits_collection.delete_many({"user_id": user_id})
+            
+            # Delete user's payment transactions
+            payment_transactions_collection.delete_many({"user_id": user_id})
+            
+            # Delete user's subscriptions
+            user_subscriptions_collection.delete_many({"user_id": user_id})
+            
+            # Finally, delete the user account itself
+            result = users_collection.delete_one({"_id": user_object_id})
+            
+            return result.deleted_count > 0
         except Exception as e:
-            print(f"Error marking account for deletion: {e}")
+            print(f"Error deleting account immediately: {e}")
             return False
     
     # Subscription Management Methods

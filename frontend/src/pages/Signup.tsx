@@ -147,8 +147,15 @@ const Signup: React.FC = () => {
       navigate('/verify-email', { state: { email: formData.email } });
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail;
-      if (errorMessage?.includes('already exists')) {
+      
+      if (errorMessage?.includes('already exists') || errorMessage?.includes('User already registered')) {
         setErrors({ submit: 'An account with this email already exists. Try signing in instead.' });
+      } else if (errorMessage?.includes('email')) {
+        setErrors({ submit: 'Please enter a valid email address.' });
+      } else if (errorMessage?.includes('password')) {
+        setErrors({ submit: 'Password doesn\'t meet requirements. Please try a stronger password.' });
+      } else if (errorMessage?.includes('name')) {
+        setErrors({ submit: 'Please enter a valid name.' });
       } else {
         setErrors({ submit: errorMessage || 'Something went wrong. Please try again.' });
       }
@@ -164,8 +171,14 @@ const Signup: React.FC = () => {
       [name]: type === 'checkbox' ? checked : value 
     }));
     
+    // Clear field-specific errors when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+    
+    // Clear submit error when user makes any changes
+    if (errors.submit) {
+      setErrors(prev => ({ ...prev, submit: undefined }));
     }
   };
 
@@ -320,7 +333,14 @@ const Signup: React.FC = () => {
 
                 {errors.submit && (
                   <div className="bg-red-50/80 backdrop-blur-glass border border-red-200 text-red-600 px-4 py-3 rounded-20 text-sm">
-                    {errors.submit}
+                    <p>{errors.submit}</p>
+                    {(errors.submit.includes('already exists') || errors.submit.includes('sign in')) && (
+                      <p className="mt-2">
+                        <Link to="/login" className="text-electric-blue hover:text-neon-purple font-medium transition-colors">
+                          Sign in instead →
+                        </Link>
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -480,7 +500,14 @@ const Signup: React.FC = () => {
 
                 {errors.submit && (
                   <div className="bg-red-50/80 backdrop-blur-glass border border-red-200 text-red-600 px-4 py-3 rounded-20 text-sm">
-                    {errors.submit}
+                    <p>{errors.submit}</p>
+                    {(errors.submit.includes('already exists') || errors.submit.includes('sign in')) && (
+                      <p className="mt-2">
+                        <Link to="/login" className="text-electric-blue hover:text-neon-purple font-medium transition-colors">
+                          Sign in instead →
+                        </Link>
+                      </p>
+                    )}
                   </div>
                 )}
 

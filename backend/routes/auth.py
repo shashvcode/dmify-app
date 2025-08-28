@@ -176,12 +176,12 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
 @router.delete('/delete-account')
 async def delete_account(current_user: dict = Depends(get_current_user)):
     """
-    Safely delete user account and all associated data
-    This is a soft delete with 30-day retention period
+    Immediately delete user account and all associated data
+    This is a permanent hard delete with no retention period
     """
     try:
-        # Mark account for deletion (soft delete)
-        success = Database.mark_account_for_deletion(current_user["_id"])
+        # Immediately delete all user data
+        success = Database.delete_account_immediately(current_user["_id"])
         
         if not success:
             raise HTTPException(
@@ -190,8 +190,8 @@ async def delete_account(current_user: dict = Depends(get_current_user)):
             )
         
         return {
-            "message": "Account marked for deletion. Your data will be permanently removed in 30 days.",
-            "deletion_date": "30 days from now"
+            "message": "Account and all associated data have been permanently deleted.",
+            "deletion_status": "completed"
         }
         
     except Exception as e:

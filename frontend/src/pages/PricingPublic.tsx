@@ -8,7 +8,7 @@ interface PaymentPlan {
   plan_id: string;
   name: string;
   description: string;
-  credits: number;
+  messages: number;
   amount: number;
   price_id: string;
 }
@@ -69,9 +69,9 @@ const PricingPublic: React.FC = () => {
     return `$${(amount / 100).toFixed(2)}`;
   };
 
-  const getPricePerCredit = (amount: number, credits: number) => {
-    const pricePerCredit = amount / credits / 100;
-    return `$${pricePerCredit.toFixed(3)} per message`;
+  const getPricePerMessage = (amount: number, messages: number) => {
+    const pricePerMessage = amount / messages / 100;
+    return `$${pricePerMessage.toFixed(3)} per message`;
   };
 
   // Map plan IDs to our custom names and features
@@ -84,36 +84,37 @@ const PricingPublic: React.FC = () => {
       description: string;
     }> = {
       'plan_1': {
-        name: 'Starter Pack',
+        name: 'Starter Plan',
         emoji: '🚀',
         description: 'Perfect for testing the waters',
         features: [
-          '100 Personalized DMs',
+          '100 Monthly Messages',
           'AI-powered profile analysis',
-          'Credits never expire'
+          'Cancel anytime',
+          'Resets every month'
         ]
       },
       'plan_2': {
-        name: 'Growth Pack',
+        name: 'Growth Plan',
         emoji: '📈',
         description: 'Best value for growing brands',
         isPopular: true,
         features: [
-          '500 Personalized DMs',
+          '500 Monthly Messages',
           'AI-powered profile analysis',
-          'Credits never expire',
+          'Cancel anytime',
           'Best value for growing brands'
         ]
       },
       'plan_3': {
-        name: 'Pro Pack',
+        name: 'Pro Plan',
         emoji: '⚡',
         description: 'Scale your outreach empire',
         features: [
-          '1500 Personalized DMs',
+          '1500 Monthly Messages',
           'AI-powered profile analysis',
           'Priority support',
-          'Credits never expire'
+          'Cancel anytime'
         ]
       }
     };
@@ -123,9 +124,9 @@ const PricingPublic: React.FC = () => {
       emoji: '💎',
       description: plan.description,
       features: [
-        `${plan.credits} Personalized DMs`,
+        `${plan.messages} Monthly Messages`,
         'AI-powered profile analysis',
-        'Credits never expire'
+        'Cancel anytime'
       ]
     };
   };
@@ -185,11 +186,11 @@ const PricingPublic: React.FC = () => {
           {/* Hero Section */}
           <div className={`text-center mb-16 transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-text mb-6 font-space leading-tight">
-              💡 Simple, Transparent Pricing —{' '}
-              <span className="gradient-text">Pay Only for the DMs You Send</span>
+              💡 Simple Monthly Plans —{' '}
+              <span className="gradient-text">Scale Your Instagram Outreach</span>
             </h1>
             <h2 className="text-xl md:text-2xl text-secondary-text mb-8 max-w-4xl mx-auto leading-relaxed">
-              Generate AI-powered, personalized Instagram DMs that convert. Choose a plan that fits your outreach goals.
+              Generate AI-powered, personalized Instagram DMs that convert. Monthly message allowances that reset every billing period.
             </h2>
             <div className="glass-card max-w-md mx-auto">
               <p className="text-electric-blue font-bold text-lg">🎉 Get 10 free messages when you sign up today!</p>
@@ -229,10 +230,10 @@ const PricingPublic: React.FC = () => {
                     <div className="text-4xl mb-4">{enhancedPlan.emoji}</div>
                     <h3 className="text-2xl font-bold text-primary-text mb-2 font-space">{enhancedPlan.name}</h3>
                     <div className="text-4xl font-black text-primary-text mb-2">
-                      {formatPrice(plan.amount)}
+                      {formatPrice(plan.amount)}<span className="text-lg font-normal">/month</span>
                     </div>
                     <div className="text-sm text-secondary-text mb-6">
-                      {getPricePerCredit(plan.amount, plan.credits)}
+                      {getPricePerMessage(plan.amount, plan.messages)}
                     </div>
                     
                     <ul className="text-left space-y-3 mb-8 flex-1">
@@ -316,35 +317,16 @@ const PricingPublic: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🤝 No-Risk Guarantee</h3>
+                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🤝 Cancel Anytime</h3>
                   <p className="text-secondary-text leading-relaxed">
-                    Credits never expire. Cancel anytime. Start with confidence knowing there's no risk.
+                    No contracts or commitments. Cancel your subscription anytime with immediate effect.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Final CTA */}
-          <div className={`text-center transition-all duration-800 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="glass-card max-w-2xl mx-auto">
-              <h2 className="text-3xl md:text-4xl font-black text-primary-text mb-6 font-space">
-                Ready to Scale Your Instagram Outreach?
-              </h2>
-              <p className="text-lg text-secondary-text mb-8 leading-relaxed">
-                Join hundreds of marketers, creators, and agencies who are already using DMify to build authentic connections and grow their business.
-              </p>
-              <Link
-                to="/signup"
-                className="btn-primary text-xl px-12 py-4 inline-block hover:scale-105 transition-all duration-300"
-              >
-Start for Free
-              </Link>
-              <p className="text-secondary-text mt-4">
-                🎉 10 free messages included • No credit card required
-              </p>
-            </div>
-          </div>
+
 
           {/* Footer Note */}
           <div className="mt-12 text-center text-sm text-secondary-text">
