@@ -16,7 +16,7 @@ PAYMENT_PLANS = {
     "plan_1": {
         "price_id": os.getenv("STRIPE_PRICE_ONE"),
         "messages": 100,  # Monthly message allowance
-        "amount": 499,  # $4.99/month in cents
+        "amount": 599,  # $5.99/month in cents
         "name": "Starter Plan",
         "description": "100 messages per month"
     },
@@ -164,38 +164,69 @@ class PaymentService:
             plan = PAYMENT_PLANS[plan_id]
             user_id = session.metadata['user_id']
             
+            logging.info(f"Processing subscription creation for user {user_id}, plan {plan_id}, stripe_sub {subscription.id}")
+            
             # Check if user already has an active subscription
             existing_subscription = Database.get_user_subscription(user_id)
+            
+            # Prepare subscription data
+            subscription_data = {
+                "stripe_subscription_id": subscription.id,
+                "stripe_customer_id": subscription.customer,
+                "plan_id": plan_id,
+                "status": subscription.status,
+                "monthly_allowance": plan["messages"],
+                "used_this_month": 0,  # Reset usage for immediate access to new plan
+                "current_period_start": datetime.fromtimestamp(subscription.current_period_start),
+                "current_period_end": datetime.fromtimestamp(subscription.current_period_end),
+                "cancel_at_period_end": False
+            }
+            
+            success = False
+            
             if existing_subscription:
                 # User is upgrading/changing plans - update existing subscription
-                logging.info(f"User {user_id} already has subscription, updating to new plan {plan_id}")
+                logging.info(f"User {user_id} already has subscription {existing_subscription['stripe_subscription_id']}, updating to new plan {plan_id}")
                 
-                updates = {
-                    "stripe_subscription_id": subscription.id,
-                    "stripe_customer_id": subscription.customer,
-                    "plan_id": plan_id,
-                    "status": subscription.status,
-                    "monthly_allowance": plan["messages"],
-                    "used_this_month": 0,  # Reset usage for immediate access to new plan
-                    "current_period_start": datetime.fromtimestamp(subscription.current_period_start),
-                    "current_period_end": datetime.fromtimestamp(subscription.current_period_end),
-                    "cancel_at_period_end": False
-                }
-                
+                # Try to update using the existing subscription ID first
                 success = Database.update_subscription(
                     existing_subscription["stripe_subscription_id"], 
-                    updates
+                    subscription_data
                 )
                 
+                # If that fails, try updating by user_id directly (handles multiple subscriptions)
+                if not success:
+                    logging.info(f"Fallback: updating subscription by user_id for user {user_id}")
+                    success = Database.update_user_subscription_direct(user_id, subscription_data)
+                
+                # If still no success, delete old and create new
+                if not success:
+                    logging.warning(f"Update failed, removing old subscription and creating new one for user {user_id}")
+                    # Cancel old subscription in our database
+                    Database.cancel_subscription(existing_subscription["stripe_subscription_id"], cancel_at_period_end=False)
+                    
+                    # Create new subscription record
+                    subscription_id = Database.create_subscription(
+                        user_id=user_id,
+                        stripe_subscription_id=subscription.id,
+                        stripe_customer_id=subscription.customer,
+                        plan_id=plan_id,
+                        status=subscription.status,
+                        monthly_allowance=plan["messages"],
+                        current_period_start=datetime.fromtimestamp(subscription.current_period_start),
+                        current_period_end=datetime.fromtimestamp(subscription.current_period_end)
+                    )
+                    success = subscription_id is not None
+                    
                 if success:
-                    Database.update_payment_status(session.id, "completed")
-                    logging.info(f"Successfully updated subscription for user {user_id} to plan {plan_id}")
-                    return True
+                    logging.info(f"Successfully updated/replaced subscription for user {user_id} to plan {plan_id}")
                 else:
                     logging.error(f"Failed to update existing subscription for user {user_id}")
                     return False
+                    
             else:
                 # Create new subscription record
+                logging.info(f"Creating new subscription for user {user_id}")
                 subscription_id = Database.create_subscription(
                     user_id=user_id,
                     stripe_subscription_id=subscription.id,
@@ -207,17 +238,26 @@ class PaymentService:
                     current_period_end=datetime.fromtimestamp(subscription.current_period_end)
                 )
                 
-                if subscription_id:
-                    # Update transaction record
-                    Database.update_payment_status(session.id, "completed")
+                success = subscription_id is not None
+                if success:
                     logging.info(f"Successfully created new subscription for user {user_id}")
-                    return True
                 else:
                     logging.error(f"Failed to create subscription record for session: {session.id}")
                     return False
+            
+            # Update transaction record if successful
+            if success:
+                Database.update_payment_status(session.id, "completed")
+                logging.info(f"Subscription processing completed successfully for user {user_id}")
+                return True
+            else:
+                logging.error(f"Subscription processing failed for user {user_id}")
+                return False
                 
         except Exception as e:
             logging.error(f"Error handling subscription creation: {str(e)}")
+            import traceback
+            logging.error(f"Traceback: {traceback.format_exc()}")
             return False
     
     @staticmethod

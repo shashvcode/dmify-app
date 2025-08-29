@@ -580,7 +580,7 @@ class Database:
             user_object_id = ObjectId(user_id)
             
             # First, cancel any active Stripe subscriptions
-            subscriptions = list(user_subscriptions_collection.find({"user_id": user_id, "status": {"$in": ["active", "trialing", "past_due"]}}))
+            subscriptions = list(user_subscriptions_collection.find({"user_id": user_object_id, "status": {"$in": ["active", "trialing", "past_due"]}}))
             for subscription in subscriptions:
                 try:
                     # Cancel subscription immediately in Stripe
@@ -590,19 +590,19 @@ class Database:
                     print(f"Warning: Failed to cancel Stripe subscription {subscription['stripe_subscription_id']}: {e}")
             
             # Delete all user's projects
-            projects_collection.delete_many({"user_id": user_id})
+            projects_collection.delete_many({"user_id": user_object_id})
             
             # Delete all user's message generation history
-            messages_collection.delete_many({"user_id": user_id})
+            messages_collection.delete_many({"user_id": user_object_id})
             
             # Delete user's credits/usage history
-            user_credits_collection.delete_many({"user_id": user_id})
+            user_credits_collection.delete_many({"user_id": user_object_id})
             
             # Delete user's payment transactions
-            payment_transactions_collection.delete_many({"user_id": user_id})
+            payment_transactions_collection.delete_many({"user_id": user_object_id})
             
             # Delete user's subscriptions
-            user_subscriptions_collection.delete_many({"user_id": user_id})
+            user_subscriptions_collection.delete_many({"user_id": user_object_id})
             
             # Finally, delete the user account itself
             result = users_collection.delete_one({"_id": user_object_id})
@@ -652,7 +652,7 @@ class Database:
         try:
             subscription = user_subscriptions_collection.find_one({
                 "user_id": ObjectId(user_id),
-                "status": {"$in": ["active", "past_due"]}
+                "status": {"$in": ["active", "past_due", "trialing"]}
             })
             if subscription:
                 subscription["_id"] = str(subscription["_id"])
@@ -692,6 +692,26 @@ class Database:
             return result.modified_count > 0
         except Exception as e:
             print(f"Error updating subscription: {e}")
+            return False
+    
+    @staticmethod
+    def update_user_subscription_direct(
+        user_id: str,
+        updates: Dict[str, Any]
+    ) -> bool:
+        """Update subscription by user_id (fallback for plan changes)"""
+        try:
+            updates["updated_at"] = datetime.utcnow()
+            result = user_subscriptions_collection.update_one(
+                {
+                    "user_id": ObjectId(user_id),
+                    "status": {"$in": ["active", "past_due"]}
+                },
+                {"$set": updates}
+            )
+            return result.modified_count > 0
+        except Exception as e:
+            print(f"Error updating subscription by user_id: {e}")
             return False
     
     @staticmethod

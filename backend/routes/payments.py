@@ -289,16 +289,53 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
 async def refresh_subscription_from_stripe(current_user: dict = Depends(get_current_user)):
     """Force refresh subscription data from Stripe (useful for immediate updates after checkout)"""
     
-    subscription = Database.get_user_subscription(current_user["_id"])
-    if not subscription:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No subscription found"
-        )
-    
     try:
-        # Fetch latest subscription data from Stripe
-        stripe_subscription = stripe.Subscription.retrieve(subscription["stripe_subscription_id"])
+        # First, let's check if user has ANY Stripe customer records by searching recent checkout sessions
+        # This helps handle cases where webhooks failed but payment succeeded
+        import stripe
+        
+        # Get all recent checkout sessions for this user to find their latest subscription
+        recent_sessions = stripe.checkout.Session.list(limit=10)
+        user_session = None
+        
+        for session in recent_sessions.data:
+            if (session.metadata and 
+                session.metadata.get('user_id') == current_user["_id"] and 
+                session.payment_status == 'paid' and
+                session.mode == 'subscription'):
+                user_session = session
+                break
+        
+        if not user_session:
+            # Check if user has existing subscription in our DB
+            subscription = Database.get_user_subscription(current_user["_id"])
+            if not subscription:
+                return {
+                    "success": False,
+                    "message": "No subscription found",
+                    "has_subscription": False
+                }
+            
+            # Try to refresh existing subscription
+            stripe_subscription = stripe.Subscription.retrieve(subscription["stripe_subscription_id"])
+        else:
+            # Handle case where payment succeeded but webhook failed
+            logging.info(f"Found recent checkout session {user_session.id} for user {current_user['_id']}")
+            
+            if user_session.subscription:
+                stripe_subscription = stripe.Subscription.retrieve(user_session.subscription)
+                
+                # Process this as if it came from webhook
+                success = PaymentService.handle_subscription_created(user_session)
+                if success:
+                    logging.info(f"Successfully processed missed subscription for user {current_user['_id']}")
+                else:
+                    logging.error(f"Failed to process missed subscription for user {current_user['_id']}")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No subscription found in checkout session"
+                )
         
         # Update our database with the latest Stripe data
         stripe_price_id = stripe_subscription['items']['data'][0]['price']['id']
@@ -322,7 +359,26 @@ async def refresh_subscription_from_stripe(current_user: dict = Depends(get_curr
                 "current_period_end": datetime.fromtimestamp(stripe_subscription['current_period_end'])
             }
             
-            success = Database.update_subscription(subscription["stripe_subscription_id"], updates)
+            # Try to update existing subscription first
+            subscription = Database.get_user_subscription(current_user["_id"])
+            success = False
+            
+            if subscription:
+                success = Database.update_subscription(subscription["stripe_subscription_id"], updates)
+            
+            # If no existing subscription or update failed, create new one
+            if not success:
+                subscription_id = Database.create_subscription(
+                    user_id=current_user["_id"],
+                    stripe_subscription_id=stripe_subscription.id,
+                    stripe_customer_id=stripe_subscription.customer,
+                    plan_id=new_plan_id,
+                    status=stripe_subscription.status,
+                    monthly_allowance=new_monthly_allowance,
+                    current_period_start=datetime.fromtimestamp(stripe_subscription.current_period_start),
+                    current_period_end=datetime.fromtimestamp(stripe_subscription.current_period_end)
+                )
+                success = subscription_id is not None
             
             if success:
                 # Return the updated subscription
@@ -330,7 +386,8 @@ async def refresh_subscription_from_stripe(current_user: dict = Depends(get_curr
                 return {
                     "success": True,
                     "message": "Subscription refreshed successfully",
-                    "subscription": updated_subscription
+                    "subscription": updated_subscription,
+                    "has_subscription": True
                 }
             else:
                 raise HTTPException(
@@ -343,6 +400,12 @@ async def refresh_subscription_from_stripe(current_user: dict = Depends(get_curr
                 detail="Unable to map Stripe subscription to plan"
             )
             
+    except stripe.error.StripeError as e:
+        logging.error(f"Stripe error refreshing subscription: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Stripe error: {str(e)}"
+        )
     except Exception as e:
         logging.error(f"Error refreshing subscription: {str(e)}")
         raise HTTPException(
