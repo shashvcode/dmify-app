@@ -90,8 +90,8 @@ const TermsOfService: React.FC = () => {
                 <section className="mb-8">
                   <h2 className="text-2xl font-bold text-primary-text mb-4">5. Payment Terms</h2>
                   <p className="text-secondary-text mb-4">
-                    Our subscription services are billed in advance on a monthly basis. All fees are non-refundable except as required by law. 
-                    We reserve the right to change our pricing with 30 days' notice. You can cancel your subscription at any time through your account settings.
+                    Our services use a credit-based system with one-time purchases. Credits never expire and are non-refundable except as required by law. 
+                    We reserve the right to change our pricing with 30 days' notice. You can purchase additional credits at any time through your account.
                   </p>
                 </section>
 

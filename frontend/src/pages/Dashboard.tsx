@@ -22,9 +22,6 @@ interface CreditInfo {
   credits: number;
   total_earned: number;
   total_used: number;
-  subscription_remaining: number;
-  has_subscription: boolean;
-  total_remaining: number;
 }
 
 const Dashboard: React.FC = () => {
@@ -66,27 +63,10 @@ const Dashboard: React.FC = () => {
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
       setPaymentSuccess(true);
-      // Force refresh subscription data immediately
-      const refreshSubscription = async () => {
-        try {
-          console.log('Attempting to refresh subscription data...');
-          await apiService.refreshSubscription();
-          console.log('Subscription refresh successful, fetching dashboard data...');
-          await fetchDashboardData();
-        } catch (error) {
-          console.error('Failed to refresh subscription:', error);
-          // Fallback to normal data fetch
-          setTimeout(() => {
-            fetchDashboardData();
-          }, 2000);
-        }
-      };
-      
-      // Try immediate refresh, then fallback to timed refresh
-      refreshSubscription();
+      // Refresh credit data after successful payment
       setTimeout(() => {
         fetchDashboardData();
-      }, 3000); // Backup refresh after 3 seconds
+      }, 1000);
       
       setTimeout(() => {
         setPaymentSuccess(false);
@@ -123,7 +103,7 @@ const Dashboard: React.FC = () => {
             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium">Payment successful! Your subscription is now active.</span>
+            <span className="font-medium">Payment successful! Your credits have been added to your account.</span>
           </div>
         </div>
       )}
@@ -140,7 +120,7 @@ const Dashboard: React.FC = () => {
 
       {/* KPI Tiles */}
       <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 transition-all duration-800 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        {/* Available Messages */}
+        {/* Available Credits */}
         <div className="kpi-tile">
           <div className="flex items-start justify-between h-full">
             <div className="flex items-center">
@@ -150,20 +130,12 @@ const Dashboard: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <p className="kpi-label mb-1">
-                  {credits?.has_subscription ? 'Messages Remaining' : 'Available Credits'}
-                </p>
-                <p className="kpi-value">{credits?.total_remaining ?? 0}</p>
-                {credits?.has_subscription && credits?.subscription_remaining > 0 && (
-                  <p className="text-xs text-secondary-text mt-1">
-                    {credits.subscription_remaining} from subscription
-                    {credits.credits > 0 && `, ${credits.credits} bonus credits`}
-                  </p>
-                )}
+                <p className="kpi-label mb-1">Available Credits</p>
+                <p className="kpi-value">{credits?.credits ?? 0}</p>
               </div>
             </div>
             <Link to="/app/payments" className="kpi-link">
-              {credits?.has_subscription ? 'Manage' : 'Upgrade'}
+              Buy Messages
             </Link>
           </div>
         </div>
@@ -366,7 +338,7 @@ const Dashboard: React.FC = () => {
           onClick={() => navigate('/app/payments')}
           className="px-6 py-3 border border-electric-blue text-electric-blue rounded-full font-semibold hover:bg-electric-blue hover:text-white transition-all duration-300"
         >
-          {credits?.has_subscription ? 'Manage Plan' : 'Subscribe'}
+          Buy Messages
         </button>
       </div>
     </div>

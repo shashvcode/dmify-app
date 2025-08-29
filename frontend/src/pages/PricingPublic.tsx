@@ -30,7 +30,7 @@ const PricingPublic: React.FC = () => {
   const fetchPlans = async () => {
     try {
       // Use a direct API call to get plans without auth for public access
-      const response = await fetch('https://dmify-app.onrender.com/payments/plans');
+      const response = await fetch(`${process.env.NODE_ENV === 'production' ? 'https://dmify-app.onrender.com' : 'http://localhost:8000'}/payments/plans`);
       if (response.ok) {
         const plansData = await response.json();
         setPlans(plansData);

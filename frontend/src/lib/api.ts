@@ -1,6 +1,8 @@
 import axios, { type AxiosInstance } from 'axios';
 
-const BASE_URL = 'https://dmify-app.onrender.com';
+const BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://dmify-app.onrender.com' 
+  : 'http://localhost:8000';
 
 class ApiService {
   private api: AxiosInstance;

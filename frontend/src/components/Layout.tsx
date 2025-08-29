@@ -131,7 +131,7 @@ const Layout: React.FC = () => {
               to="/app/payments"
               className={`navbar-link ${isActive('/app/payments') ? 'active' : ''}`}
             >
-              Subscription
+              Buy More
             </Link>
           </div>
 

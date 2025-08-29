@@ -84,7 +84,7 @@ const PrivacyPolicy: React.FC = () => {
                   <p className="text-secondary-text mb-4">We use your information to:</p>
                   <ul className="list-disc pl-6 text-secondary-text mb-4">
                     <li>Provide and improve our AI-powered message generation service</li>
-                    <li>Process payments and manage subscriptions</li>
+                    <li>Process payments and manage credit purchases</li>
                     <li>Send important account and service updates</li>
                     <li>Provide customer support and respond to inquiries</li>
                     <li>Analyze usage patterns to improve our service</li>

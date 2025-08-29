@@ -73,7 +73,7 @@ const ResetPassword: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('https://dmify-app.onrender.com/auth/reset-password', {
+      const response = await fetch(`${process.env.NODE_ENV === 'production' ? 'https://dmify-app.onrender.com' : 'http://localhost:8000'}/auth/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

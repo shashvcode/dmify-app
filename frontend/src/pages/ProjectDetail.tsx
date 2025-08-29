@@ -51,7 +51,7 @@ const ProjectDetail: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [dmJobs, setDmJobs] = useState<DMJob[]>([]);
-  const [subscription, setSubscription] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -91,19 +91,17 @@ const ProjectDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      const [projectData, messagesData, creditsData, jobsData, subscriptionData] = await Promise.all([
+      const [projectData, messagesData, creditsData, jobsData] = await Promise.all([
         apiService.getProject(id),
         apiService.getProjectMessages(id),
         apiService.getUserCredits(),
-        apiService.getProjectDMJobs(id),
-        apiService.getUserSubscription()
+        apiService.getProjectDMJobs(id)
       ]);
       
       setProject(projectData);
       setMessages(messagesData);
       setCredits(creditsData);
       setDmJobs(jobsData);
-      setSubscription(subscriptionData);
     } catch (error: any) {
       if (error.response?.status === 404) {
         navigate('/app/projects');
