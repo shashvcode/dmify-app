@@ -11,6 +11,7 @@ EMAIL_SENDING_KEY = os.getenv("EMAIL_SENDING_KEY")
 DOMAIN = "dmify.app"
 FROM_EMAIL = f"DMify <postmaster@{DOMAIN}>"
 FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify-app-1.onrender.com")
+ADMIN_EMAIL = "shashi.optimizestudio@gmail.com"
 
 if not EMAIL_SENDING_KEY:
     logging.error("EMAIL_SENDING_KEY environment variable not found!")
@@ -395,3 +396,128 @@ async def send_leads_ready_email(email: str, project_name: str, lead_count: int)
         subject=subject,
         html_content=html_content
     )
+
+# Admin notification template for new user signups
+admin_notification_template = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New User Signup - DMify</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .electric-blue { color: #4F46E5; }
+        .neon-purple { color: #7C3AED; }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Inter', Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Main Container -->
+        <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 24px; padding: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+            
+            <!-- Header with Logo -->
+            <div style="text-align: center; margin-bottom: 40px;">
+                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <h1 style="margin: 0; font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    🎉 New User Signup!
+                </h1>
+            </div>
+            
+            <!-- Content -->
+            <div style="margin-bottom: 40px;">
+                <p style="font-size: 18px; color: #6B7280; margin-bottom: 30px; line-height: 1.6;">
+                    Great news! A new user has just signed up for DMify:
+                </p>
+                
+                <!-- User Details -->
+                <div style="background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 12px; padding: 24px; margin: 30px 0;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #4F46E5; margin-bottom: 16px;">User Details</h3>
+                    <div style="space-y: 12px;">
+                        <p style="margin: 8px 0; color: #374151;"><strong>Name:</strong> {{ user_name }}</p>
+                        <p style="margin: 8px 0; color: #374151;"><strong>Email:</strong> {{ user_email }}</p>
+                        <p style="margin: 8px 0; color: #374151;"><strong>Signup Time:</strong> {{ signup_time }}</p>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="https://dmify-app-1.onrender.com/app/dashboard" style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4); margin-right: 12px;">
+                        View Dashboard
+                    </a>
+                    <a href="mailto:{{ user_email }}" style="display: inline-block; background: transparent; color: #4F46E5; text-decoration: none; padding: 16px 32px; border: 2px solid #4F46E5; border-radius: 12px; font-weight: 600; font-size: 16px;">
+                        Contact User
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Stats Notice -->
+            <div style="background: #DBEAFE; border: 1px solid #3B82F6; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <div style="background: #3B82F6; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                        <span style="color: white; font-weight: bold; font-size: 14px;">📊</span>
+                    </div>
+                    <p style="font-size: 16px; font-weight: 600; color: #1E40AF; margin: 0;">
+                        Growing Strong!
+                    </p>
+                </div>
+                <p style="font-size: 14px; color: #1E40AF; margin: 0; line-height: 1.5;">
+                    Your user base is expanding. This new signup brings you one step closer to your goals!
+                </p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="border-top: 1px solid #E5E7EB; padding-top: 30px; text-align: center;">
+                <p style="font-size: 14px; color: #9CA3AF; margin: 10px 0 0 0;">
+                    DMify Admin Notification System
+                </p>
+            </div>
+        </div>
+        
+        <!-- Bottom Footer -->
+        <div style="text-align: center; margin-top: 30px;">
+            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.8); margin: 0;">
+                © 2024 DMify - AI-Powered Instagram DM Automation
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+async def send_admin_signup_notification(user_name: str, user_email: str) -> bool:
+    """Send admin notification when a new user signs up"""
+    try:
+        from datetime import datetime
+        
+        # Format current time
+        signup_time = datetime.utcnow().strftime("%B %d, %Y at %I:%M %p UTC")
+        
+        # Render template
+        template = template_env.from_string(admin_notification_template)
+        html_content = template.render(
+            user_name=user_name,
+            user_email=user_email,
+            signup_time=signup_time
+        )
+        
+        # Send notification to admin
+        return await send_email_mailgun(
+            to_email=ADMIN_EMAIL,
+            subject=f"🎉 New DMify Signup: {user_name}",
+            html_content=html_content
+        )
+    except Exception as e:
+        logging.error(f"Failed to send admin signup notification: {str(e)}")
+        return False

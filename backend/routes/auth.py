@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from backend.database import Database
 from backend.auth import Auth, get_current_user
-from backend.email_service import send_verification_email, send_password_reset_email
+from backend.email_service import send_verification_email, send_password_reset_email, send_admin_signup_notification
 from datetime import timedelta
 import re
 
@@ -78,6 +78,14 @@ async def signup(request: SignupRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send verification email. Please try again."
         )
+    
+    # Send admin notification (don't fail signup if this fails)
+    try:
+        await send_admin_signup_notification(request.name, request.email)
+    except Exception as e:
+        # Log the error but don't fail the signup
+        import logging
+        logging.error(f"Failed to send admin signup notification: {str(e)}")
     
     return {"message": "User created successfully. Please check your email for verification code."}
 
