@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import SEOHead from '../components/SEOHead';
 
 // Alternating Timeline Component
@@ -184,10 +185,27 @@ const MomentumTimeline: React.FC = () => {
 
 const Landing: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { isAuthenticated, loading: authLoading } = useAuth();
 
   useEffect(() => {
     setIsVisible(true);
-  }, []);
+    
+    // Handle payment success redirect
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+    
+    if (paymentStatus === 'success' && sessionId && !authLoading) {
+      if (isAuthenticated) {
+        // User is authenticated, redirect to dashboard with success params
+        navigate(`/app/dashboard?payment=success&session_id=${sessionId}`, { replace: true });
+      } else {
+        // User not authenticated, redirect to login with payment params preserved
+        navigate(`/login?payment=success&session_id=${sessionId}`, { replace: true });
+      }
+    }
+  }, [searchParams, navigate, isAuthenticated, authLoading]);
 
   return (
     <>
