@@ -88,9 +88,8 @@ async def generate_dm_message(
         )
         
         if not result["success"]:
-            # If scraping failed, refund by trying to add credit back
-            # Note: For subscriptions, this becomes a one-time credit
-            Database.add_credits(current_user["_id"], 1)
+            # If scraping failed, refund the message usage (subscription or credit)
+            Database.refund_monthly_message(current_user["_id"])
             return {
                 "success": False,
                 "message": None,
@@ -104,7 +103,8 @@ async def generate_dm_message(
             project_id=project_id,
             username=username,
             generated_message=result["message"],
-            user_info=result["user_info"]
+            user_info=result["user_info"],
+            user_id=current_user["_id"]
         )
         
         return {
@@ -119,9 +119,9 @@ async def generate_dm_message(
         # Re-raise HTTP exceptions as is
         raise
     except Exception as e:
-        # For unexpected errors, refund the credit if it was used
+        # For unexpected errors, refund the message if it was used
         try:
-            Database.add_credits(current_user["_id"], 1)
+            Database.refund_monthly_message(current_user["_id"])
         except:
             pass  # If refund fails, log but don't break the error response
         
@@ -340,8 +340,8 @@ def process_dm_job(job_id: str):
             )
             
             if not result["success"]:
-                # Refund credit if scraping failed
-                Database.add_credits(job["user_id"], 1)
+                # Refund message if scraping failed
+                Database.refund_monthly_message(job["user_id"])
                 Database.fail_dm_job(job_id, result["error"])
                 return
             
@@ -350,7 +350,8 @@ def process_dm_job(job_id: str):
                 project_id=job["project_id"],
                 username=job["username"],
                 generated_message=result["message"],
-                user_info=result["user_info"]
+                user_info=result["user_info"],
+                user_id=job["user_id"]
             )
             
             # Complete the job
@@ -358,8 +359,8 @@ def process_dm_job(job_id: str):
             Database.complete_dm_job(job_id, result)
             
         except Exception as e:
-            # Refund credit on error
-            Database.add_credits(job["user_id"], 1)
+            # Refund message on error
+            Database.refund_monthly_message(job["user_id"])
             Database.fail_dm_job(job_id, f"Processing error: {str(e)}")
             
     except Exception as e:

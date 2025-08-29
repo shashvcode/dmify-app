@@ -25,7 +25,7 @@ user_subscriptions_collection = db.user_subscriptions
 class Database:
     @staticmethod
     def create_user(email: str, password_hash: str, name: str) -> str:
-    
+        """Create a new user with initial credits"""
         user_doc = {
             "email": email.lower(),
             "password_hash": password_hash,
@@ -131,8 +131,8 @@ class Database:
             return False
     
     @staticmethod
-    def save_message(project_id: str, username: str, generated_message: str, user_info: Dict[str, Any]) -> str:
-    
+    def save_message(project_id: str, username: str, generated_message: str, user_info: Dict[str, Any], user_id: str = None) -> str:
+        """Save a message with optional user_id for subscription tracking"""
         message_doc = {
             "project_id": ObjectId(project_id),
             "username": username,
@@ -140,6 +140,11 @@ class Database:
             "user_info": user_info,
             "created_at": datetime.utcnow()
         }
+        
+        # Add user_id if provided for better tracking
+        if user_id:
+            message_doc["user_id"] = ObjectId(user_id)
+            
         result = messages_collection.insert_one(message_doc)
         return str(result.inserted_id)
     
@@ -721,12 +726,12 @@ class Database:
             # First check if user has active subscription
             subscription = Database.get_user_subscription(user_id)
             if subscription and subscription["used_this_month"] < subscription["monthly_allowance"]:
-                # Use from subscription allowance
+                # Use from subscription allowance with atomic update
                 result = user_subscriptions_collection.update_one(
                     {
                         "user_id": ObjectId(user_id),
-                        "status": {"$in": ["active", "past_due"]},
-                        "used_this_month": {"$lt": "$monthly_allowance"}
+                        "status": {"$in": ["active", "past_due", "trialing"]},
+                        "used_this_month": {"$lt": subscription["monthly_allowance"]}  # Fixed: use actual value, not string
                     },
                     {
                         "$inc": {"used_this_month": 1},
@@ -786,6 +791,33 @@ class Database:
             return result.modified_count > 0
         except Exception as e:
             print(f"Error resetting monthly usage: {e}")
+            return False
+    
+    @staticmethod
+    def refund_monthly_message(user_id: str) -> bool:
+        """Refund one message to monthly allowance or credits. Returns True if successful."""
+        try:
+            # First try to refund to subscription allowance
+            subscription = Database.get_user_subscription(user_id)
+            if subscription and subscription["used_this_month"] > 0:
+                result = user_subscriptions_collection.update_one(
+                    {
+                        "user_id": ObjectId(user_id),
+                        "status": {"$in": ["active", "past_due", "trialing"]},
+                        "used_this_month": {"$gt": 0}
+                    },
+                    {
+                        "$inc": {"used_this_month": -1},
+                        "$set": {"updated_at": datetime.utcnow()}
+                    }
+                )
+                if result.modified_count > 0:
+                    return True
+            
+            # Fall back to adding a credit
+            return Database.add_credits(user_id, 1)
+        except Exception as e:
+            print(f"Error refunding monthly message: {e}")
             return False
     
     @staticmethod
