@@ -66,10 +66,28 @@ const Dashboard: React.FC = () => {
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
       setPaymentSuccess(true);
-      // Refresh data to show updated subscription
+      // Force refresh subscription data immediately
+      const refreshSubscription = async () => {
+        try {
+          console.log('Attempting to refresh subscription data...');
+          await apiService.refreshSubscription();
+          console.log('Subscription refresh successful, fetching dashboard data...');
+          await fetchDashboardData();
+        } catch (error) {
+          console.error('Failed to refresh subscription:', error);
+          // Fallback to normal data fetch
+          setTimeout(() => {
+            fetchDashboardData();
+          }, 2000);
+        }
+      };
+      
+      // Try immediate refresh, then fallback to timed refresh
+      refreshSubscription();
       setTimeout(() => {
         fetchDashboardData();
-      }, 1000); // Small delay to allow webhook processing
+      }, 3000); // Backup refresh after 3 seconds
+      
       setTimeout(() => {
         setPaymentSuccess(false);
         window.history.replaceState({}, '', '/app/dashboard');

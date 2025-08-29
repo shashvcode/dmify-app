@@ -56,9 +56,27 @@ const Payments: React.FC = () => {
     // Check for payment success and refresh data
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
+      const refreshAfterPayment = async () => {
+        try {
+          console.log('Payment success detected, refreshing subscription...');
+          await apiService.refreshSubscription();
+          console.log('Subscription refresh successful, fetching payment data...');
+          await fetchData();
+        } catch (error) {
+          console.error('Failed to refresh subscription after payment:', error);
+          // Fallback to normal refresh
+          setTimeout(() => {
+            fetchData();
+          }, 2000);
+        }
+      };
+      
+      // Try immediate refresh
+      refreshAfterPayment();
+      // Backup refresh
       setTimeout(() => {
-        fetchData(); // Refresh to show updated subscription
-      }, 1000); // Small delay to allow webhook processing
+        fetchData();
+      }, 3000);
     }
   }, [searchParams]);
 

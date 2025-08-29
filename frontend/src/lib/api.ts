@@ -199,6 +199,11 @@ class ApiService {
     return response.data;
   }
 
+  async refreshSubscription() {
+    const response = await this.api.post('/payments/refresh-subscription');
+    return response.data;
+  }
+
   async deleteAccount() {
     const response = await this.api.delete('/auth/delete-account');
     return response.data;
