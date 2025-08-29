@@ -412,8 +412,7 @@ const Landing: React.FC = () => {
             Ready to Scale Your Instagram Outreach with AI?
           </h2>
           <p className="text-xl text-white/90 mb-12 leading-relaxed max-w-3xl mx-auto">
-            Join hundreds of entrepreneurs and agencies already using DMify to grow with <strong>personalized Instagram DMs</strong>. 
-            Say goodbye to cold, ignored messages — and hello to <strong>AI-powered outreach that works</strong>.
+            Join hundreds of entrepreneurs and agencies already using DMify to grow with <strong>personalized Instagram DMs</strong>.
           </p>
           <Link
             to="/signup"
@@ -446,6 +445,11 @@ const Landing: React.FC = () => {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-white/20 text-center text-secondary-text">
+            <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-8 mb-4">
+              <Link to="/terms" className="text-secondary-text hover:text-primary-text transition-colors">Terms of Service</Link>
+              <Link to="/privacy" className="text-secondary-text hover:text-primary-text transition-colors">Privacy Policy</Link>
+              <a href="mailto:support@dmify.app" className="text-secondary-text hover:text-primary-text transition-colors">Contact Support</a>
+            </div>
             <p>&copy; 2024 DMify - The Best Instagram Outreach Tool for Personalized DMs. All rights reserved.</p>
           </div>
         </div>

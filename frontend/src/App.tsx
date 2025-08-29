@@ -1,6 +1,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { UIProvider } from './contexts/UIContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -11,6 +12,8 @@ import Signup from './pages/Signup';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
@@ -22,9 +25,10 @@ import Goodbye from './pages/Goodbye';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <div className="min-h-screen">
-          <Routes>
+      <UIProvider>
+        <Router>
+          <div className="min-h-screen">
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/pricing" element={<PricingPublic />} />
@@ -33,6 +37,8 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/goodbye" element={<Goodbye />} />
             
             {/* Protected Routes */}
@@ -53,9 +59,10 @@ function App() {
             <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
             <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
             <Route path="/messages" element={<Navigate to="/app/messages" replace />} />
-          </Routes>
-        </div>
-      </Router>
+            </Routes>
+          </div>
+        </Router>
+      </UIProvider>
     </AuthProvider>
   );
 }

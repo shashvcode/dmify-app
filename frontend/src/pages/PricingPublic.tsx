@@ -293,9 +293,11 @@ const PricingPublic: React.FC = () => {
           {/* Footer Note */}
           <div className="mt-12 text-center text-sm text-secondary-text">
             <p>Secure payment processing powered by Stripe</p>
-            <p className="mt-2">
-              Questions? <a href="mailto:support@dmify.app" className="text-electric-blue hover:text-neon-purple transition-colors">Contact our support team</a>
-            </p>
+            <div className="mt-4 flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-6">
+              <Link to="/terms" className="text-secondary-text hover:text-electric-blue transition-colors">Terms of Service</Link>
+              <Link to="/privacy" className="text-secondary-text hover:text-electric-blue transition-colors">Privacy Policy</Link>
+              <a href="mailto:support@dmify.app" className="text-secondary-text hover:text-electric-blue transition-colors">Contact Support</a>
+            </div>
           </div>
         </main>
       </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { apiService } from '../lib/api';
+import { useUI } from '../contexts/UIContext';
 
 interface Project {
   id: string;
@@ -13,6 +14,7 @@ interface Project {
 type SortOption = 'newest' | 'alphabetical' | 'messages';
 
 const Projects: React.FC = () => {
+  const { setHideNavbar } = useUI();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
@@ -32,6 +34,18 @@ const Projects: React.FC = () => {
     document.title = "DMify - Projects";
     fetchProjects();
   }, []);
+
+  // Hide/show navbar when create drawer opens/closes
+  useEffect(() => {
+    setHideNavbar(showCreateDrawer);
+  }, [showCreateDrawer, setHideNavbar]);
+
+  // Cleanup: ensure navbar is shown when component unmounts
+  useEffect(() => {
+    return () => {
+      setHideNavbar(false);
+    };
+  }, [setHideNavbar]);
 
   const fetchProjects = async () => {
     try {

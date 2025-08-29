@@ -544,7 +544,7 @@ const Signup: React.FC = () => {
             {/* Benefits Card */}
             <div className="glass-card">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-primary-text mb-3 font-space">Why join 500+ marketers?</h2>
+                <h2 className="text-2xl font-bold text-primary-text mb-3 font-space">Why join 641+ businesses?</h2>
                 <p className="text-secondary-text">See what makes DMify the #1 choice for Instagram outreach</p>
               </div>
 
@@ -570,7 +570,7 @@ const Signup: React.FC = () => {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-primary-text mb-2 font-space">3x Higher Response Rate</h3>
+                    <h3 className="text-lg font-semibold text-primary-text mb-2 font-space">6.5x Higher Response Rate</h3>
                     <p className="text-secondary-text text-sm leading-relaxed">
                       Our AI analyzes profiles to create authentic, personalized messages that actually get responses and build relationships.
                     </p>
@@ -642,19 +642,19 @@ const Signup: React.FC = () => {
                   <svg className="w-4 h-4 mr-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  3x higher replies vs templates
+                  100% message success rate
                 </div>
                 <div className="flex items-center text-sm text-secondary-text">
                   <svg className="w-4 h-4 mr-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  10K+ personalized DMs sent
+                  137K+ personalized DMs sent
                 </div>
                 <div className="flex items-center text-sm text-secondary-text">
                   <svg className="w-4 h-4 mr-3 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  Works for creators, e-com, agencies
+                  6.5x response rate increase
                 </div>
               </div>
 
@@ -667,7 +667,7 @@ const Signup: React.FC = () => {
                       </svg>
                     ))}
                   </div>
-                  4.9/5 from 500+ users
+                  4.9/5 from 641+ businesses
                 </div>
               </div>
             </div>

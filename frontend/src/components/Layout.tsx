@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useUI } from '../contexts/UIContext';
 import { apiService } from '../lib/api';
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth();
+  const { hideNavbar } = useUI();
   const location = useLocation();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -90,7 +92,8 @@ const Layout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Primary">
+      {!hideNavbar && (
+        <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`} role="navigation" aria-label="Primary">
         <div className="navbar-container">
           {/* Logo */}
           <Link to="/" className="navbar-logo">
@@ -198,7 +201,8 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </div>
-      </nav>
+        </nav>
+      )}
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <Outlet />
