@@ -30,6 +30,14 @@ interface SubscriptionInfo {
   current_period_start?: string;
   current_period_end?: string;
   cancel_at_period_end?: boolean;
+  plan_details?: {
+    plan_id: string;
+    name: string;
+    description: string;
+    amount: number;
+    messages: number;
+    price_id: string;
+  };
 }
 
 const Payments: React.FC = () => {
@@ -263,11 +271,16 @@ const Payments: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold">
-                  {plans.find(p => p.plan_id === subscription.plan_id)?.name || 'Current Plan'}
+                  {subscription.plan_details?.name || plans.find(p => p.plan_id === subscription.plan_id)?.name || 'Current Plan'}
                 </h3>
                 <p className="text-gray-600">
-                  {formatPrice(plans.find(p => p.plan_id === subscription.plan_id)?.amount || 0)} per month
+                  {formatPrice(subscription.plan_details?.amount || plans.find(p => p.plan_id === subscription.plan_id)?.amount || 0)} per month
                 </p>
+                {subscription.plan_details && (
+                  <p className="text-sm text-gray-500">
+                    {getPricePerMessage(subscription.plan_details.amount, subscription.plan_details.messages)}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Next billing</p>
