@@ -150,21 +150,4 @@ class ExcelExportService:
         
         return f"DMify_Messages_{safe_project_name}_{timestamp}.xlsx"
     
-    @staticmethod
-    def validate_export_eligibility(user_subscription: Dict[str, Any]) -> bool:
-        """
-        Check if user is eligible for Excel export (Tier 2+ only)
-        
-        Args:
-            user_subscription: User's subscription data
-            
-        Returns:
-            bool: True if user can export, False otherwise
-        """
-        if not user_subscription:
-            return False
-        
-        plan_id = user_subscription.get('plan_id')
-        eligible_plans = ['plan_2', 'plan_3']  # Growth and Pro plans
-        
-        return plan_id in eligible_plans
+

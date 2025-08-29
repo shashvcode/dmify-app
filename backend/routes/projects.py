@@ -190,7 +190,7 @@ async def export_project_messages(
     current_user: dict = Depends(get_current_user)
 ):
     """
-    Export project messages to Excel file (Growth/Pro plans only)
+    Export project messages to Excel file - Available for all users
     """
     try:
         # Verify project exists and belongs to user
@@ -199,14 +199,6 @@ async def export_project_messages(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Project not found"
-            )
-        
-        # Check user subscription tier (Tier 2+ only)
-        user_subscription = Database.get_user_subscription(current_user["_id"])
-        if not ExcelExportService.validate_export_eligibility(user_subscription):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature."
             )
         
         # Get project messages

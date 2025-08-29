@@ -88,7 +88,7 @@ const PricingPublic: React.FC = () => {
         features: [
           '100 message credits',
           'AI profile analysis',
-          'No expiration',
+          'Excel export feature',
           'Credits never expire'
         ]
       },
@@ -123,6 +123,7 @@ const PricingPublic: React.FC = () => {
       features: [
         `${plan.messages} Message Credits`,
         'AI-powered profile analysis',
+        'Excel export feature',
         'Credits never expire'
       ]
     };

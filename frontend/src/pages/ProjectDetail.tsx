@@ -227,17 +227,8 @@ const ProjectDetail: React.FC = () => {
     }
   };
 
-  const isExportEligible = () => {
-    return subscription && ['plan_2', 'plan_3'].includes(subscription.plan_id);
-  };
-
   const handleExportMessages = async () => {
     if (!id || !project) return;
-    
-    if (!isExportEligible()) {
-      showToast('error', 'Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature.');
-      return;
-    }
 
     if (messages.length === 0) {
       showToast('error', 'No messages to export. Generate some messages first.');
@@ -276,9 +267,7 @@ const ProjectDetail: React.FC = () => {
       
       showToast('success', `Excel file downloaded successfully! (${messages.length} messages)`);
     } catch (error: any) {
-      if (error.response?.status === 403) {
-        showToast('error', 'Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature.');
-      } else if (error.response?.status === 404) {
+      if (error.response?.status === 404) {
         showToast('error', 'No messages found for this project.');
       } else {
         showToast('error', error.response?.data?.detail || 'Failed to export messages. Please try again.');
@@ -427,44 +416,26 @@ const ProjectDetail: React.FC = () => {
           {/* Export Button */}
           {messages.length > 0 && (
             <div className="flex items-center gap-3">
-              {isExportEligible() ? (
-                <button
-                  onClick={handleExportMessages}
-                  disabled={exporting}
-                  className="btn-secondary flex items-center gap-2 text-sm"
-                  title="Export messages to Excel file"
-                >
-                  {exporting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-electric-blue"></div>
-                      Exporting...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      Export to Excel
-                    </>
-                  )}
-                </button>
-              ) : (
-                <div className="group relative">
-                  <button
-                    className="btn-secondary flex items-center gap-2 text-sm opacity-50 cursor-not-allowed"
-                    disabled
-                    title="Excel export requires Growth or Pro plan"
-                  >
+              <button
+                onClick={handleExportMessages}
+                disabled={exporting}
+                className="btn-secondary flex items-center gap-2 text-sm"
+                title="Export messages to Excel file"
+              >
+                {exporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-electric-blue"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Export to Excel
-                  </button>
-                  <div className="opacity-0 group-hover:opacity-100 absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-primary-text text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 transition-opacity">
-                    Upgrade to Growth or Pro plan
-                  </div>
-                </div>
-              )}
+                  </>
+                )}
+              </button>
             </div>
           )}
         </div>

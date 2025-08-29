@@ -104,15 +104,11 @@ const Payments: React.FC = () => {
     const baseFeatures = [
       'Credits never expire',
       'Use across all projects',
-      'AI analysis included'
+      'AI analysis included',
+      'Excel export feature',
+      'No monthly fees'
     ];
     
-    // Add Excel export for Growth and Pro plans (plan_2 and plan_3)
-    if (planId === 'plan_2' || planId === 'plan_3') {
-      baseFeatures.push('Excel export feature');
-    }
-    
-    baseFeatures.push('No monthly fees');
     return baseFeatures;
   };
 
