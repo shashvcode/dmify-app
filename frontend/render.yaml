@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: dmify-frontend
+    env: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    domains:
+      - dmify.app
+      - www.dmify.app
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex
+    envVars:
+      - key: NODE_ENV
+        value: production

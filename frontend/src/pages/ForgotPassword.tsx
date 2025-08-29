@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { apiService } from '../lib/api';
+
 import SEOHead from '../components/SEOHead';
 
 const ForgotPassword: React.FC = () => {
@@ -27,7 +27,7 @@ const ForgotPassword: React.FC = () => {
     setMessage('');
 
     try {
-      const response = await fetch(`${process.env.NODE_ENV === 'production' ? 'https://dmify-app.onrender.com' : 'http://localhost:8000'}/auth/forgot-password`, {
+      const response = await fetch(`https://dmify-app.onrender.com/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
