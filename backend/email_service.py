@@ -10,10 +10,7 @@ load_dotenv()
 EMAIL_SENDING_KEY = os.getenv("EMAIL_SENDING_KEY")
 DOMAIN = "dmify.app"
 FROM_EMAIL = f"DMify <postmaster@{DOMAIN}>"
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
-if FRONTEND_URL == "http://localhost:3000":
-    FRONTEND_URL = "http://localhost:5173"
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify.app")
 
 if not EMAIL_SENDING_KEY:
     logging.error("EMAIL_SENDING_KEY environment variable not found!")
@@ -79,11 +76,11 @@ verification_template = """
                 </p>
             </div>
             
-            <!-- CTA Section -->
+            <!-- Instructions Section -->
             <div style="text-align: center; margin-bottom: 30px;">
-                <a href="https://dmify.app/verify-email" style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4); transition: all 0.3s ease;">
-                    Verify Email →
-                </a>
+                <p style="font-size: 16px; color: #6B7280; margin: 0; line-height: 1.6;">
+                    Enter this code in the verification form to complete your signup.
+                </p>
             </div>
             
             <!-- Footer -->

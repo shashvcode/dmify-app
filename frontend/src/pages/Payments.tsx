@@ -100,7 +100,7 @@ const Payments: React.FC = () => {
     return plans.find(plan => plan.plan_id === 'plan_2') || plans[1];
   };
 
-  const getPlanFeatures = (planId: string) => {
+  const getPlanFeatures = () => {
     const baseFeatures = [
       'Credits never expire',
       'Use across all projects',

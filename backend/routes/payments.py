@@ -65,9 +65,8 @@ async def create_checkout_session(
         )
     
     # Create checkout session
-    # Note: Update these URLs to match your frontend deployment
-    success_url = os.getenv("FRONTEND_URL", "http://localhost:5173") + "/app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}"
-    cancel_url = os.getenv("FRONTEND_URL", "http://localhost:5173") + "/app/dashboard?payment=cancelled"
+    success_url = os.getenv("FRONTEND_URL", "https://dmify.app") + "/app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = os.getenv("FRONTEND_URL", "https://dmify.app") + "/app/dashboard?payment=cancelled"
     
     session_data = PaymentService.create_checkout_session(
         user_id=current_user["_id"],

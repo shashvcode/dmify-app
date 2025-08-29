@@ -16,9 +16,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://dmify.app",
+        "https://www.dmify.app",
+        "http://localhost:5173",  # For development
+        "http://localhost:3000"   # For development
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
