@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { apiService } from '../lib/api';
 import SEOHead from '../components/SEOHead';
 
 const ForgotPassword: React.FC = () => {

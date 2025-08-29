@@ -62,14 +62,14 @@ const ProjectDetail: React.FC = () => {
   
   // UI state
   const [error, setError] = useState('');
-
+  const [success, setSuccess] = useState('');
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'copied'; message: string } | null>(null);
   const [showEditDrawer, setShowEditDrawer] = useState(false);
   const [editingMessage, setEditingMessage] = useState<Message | null>(null);
   const [editedContent, setEditedContent] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-
+  const [messageFilter, setMessageFilter] = useState<'all' | 'new' | 'copied'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'alphabetical'>('newest');
   
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -160,7 +160,12 @@ const ProjectDetail: React.FC = () => {
     }
   };
 
-
+  const addUsername = () => {
+    if (username.trim() && !usernames.includes(username.trim())) {
+      setUsernames(prev => [...prev, username.trim()]);
+      setUsername('');
+    }
+  };
 
   const removeUsername = (usernameToRemove: string) => {
     setUsernames(prev => prev.filter(u => u !== usernameToRemove));
