@@ -127,16 +127,7 @@ const Projects: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
   const getProjectTag = (productInfo: string) => {
-    const tags = ['SaaS', 'E-commerce', 'Agency', 'Creator', 'B2B', 'B2C'];
     // Simple logic to assign tags based on keywords
     const lowerInfo = productInfo.toLowerCase();
     if (lowerInfo.includes('saas') || lowerInfo.includes('software')) return 'SaaS';
@@ -392,52 +383,6 @@ const Projects: React.FC = () => {
   );
 };
 
-// Project Card Component
-const ProjectCard: React.FC<{
-  project: Project;
-  onDelete: (id: string, name: string) => void;
-  tag: string;
-  index: number;
-}> = ({ project, onDelete, tag, index }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const isActive = index === 0; // Mark first project as active for demo
-
-  return (
-    <div 
-      className={`project-card ${isActive ? 'active' : ''}`}
-      style={{ animationDelay: `${index * 50}ms` }}
-    >
-      <div className="project-card-header">
-        <h3 className="project-card-title">{project.name}</h3>
-        <p className="project-card-label">Product Info</p>
-        <div className="project-card-description">
-          {project.product_info}
-          {project.offer_info && ` ${project.offer_info}`}
-        </div>
-      </div>
-
-      <div className="project-card-footer">
-        <div className="project-card-meta">
-          <span className="project-card-badge">{tag}</span>
-          <span className="project-card-date">{formatDate(project.created_at)}</span>
-        </div>
-        <Link
-          to={`/app/projects/${project.id}`}
-          className="project-card-action"
-        >
-          Open
-        </Link>
-      </div>
-    </div>
-  );
-};
 
 // Project List Item Component
 const ProjectListItem: React.FC<{
