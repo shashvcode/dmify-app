@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from backend.database import Database
 from backend.auth import get_current_user
+from backend.export_service import ExcelExportService
 from typing import List, Optional
+import logging
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -180,3 +183,66 @@ async def delete_project(
         )
     
     return {"message": "Project deleted successfully"}
+
+@router.get("/{project_id}/export")
+async def export_project_messages(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Export project messages to Excel file (Growth/Pro plans only)
+    """
+    try:
+        # Verify project exists and belongs to user
+        project = Database.get_project_by_id(project_id, current_user["_id"])
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+        
+        # Check user subscription tier (Tier 2+ only)
+        user_subscription = Database.get_user_subscription(current_user["_id"])
+        if not ExcelExportService.validate_export_eligibility(user_subscription):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature."
+            )
+        
+        # Get project messages
+        messages = Database.get_project_messages(project_id)
+        if not messages:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No messages found for this project"
+            )
+        
+        # Generate Excel file
+        excel_buffer = ExcelExportService.create_messages_excel(messages, project["name"])
+        filename = ExcelExportService.get_filename(project["name"])
+        
+        # Log export activity
+        logging.info(f"Excel export generated for user {current_user['_id']}, project {project_id}, {len(messages)} messages")
+        
+        # Return file as streaming response
+        def iter_file():
+            yield excel_buffer.getvalue()
+        
+        return StreamingResponse(
+            iter_file(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            }
+        )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions as is
+        raise
+    except Exception as e:
+        logging.error(f"Error exporting project messages: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to export messages. Please try again."
+        )

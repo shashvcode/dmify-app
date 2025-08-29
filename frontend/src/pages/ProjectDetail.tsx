@@ -51,8 +51,10 @@ const ProjectDetail: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [credits, setCredits] = useState<CreditInfo | null>(null);
   const [dmJobs, setDmJobs] = useState<DMJob[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [queueing, setQueueing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   
   // Form state
   const [username, setUsername] = useState('');
@@ -89,17 +91,19 @@ const ProjectDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      const [projectData, messagesData, creditsData, jobsData] = await Promise.all([
+      const [projectData, messagesData, creditsData, jobsData, subscriptionData] = await Promise.all([
         apiService.getProject(id),
         apiService.getProjectMessages(id),
         apiService.getUserCredits(),
-        apiService.getProjectDMJobs(id)
+        apiService.getProjectDMJobs(id),
+        apiService.getUserSubscription()
       ]);
       
       setProject(projectData);
       setMessages(messagesData);
       setCredits(creditsData);
       setDmJobs(jobsData);
+      setSubscription(subscriptionData);
     } catch (error: any) {
       if (error.response?.status === 404) {
         navigate('/app/projects');
@@ -220,6 +224,67 @@ const ProjectDetail: React.FC = () => {
       showToast('success', 'Job cancelled successfully');
     } catch (error: any) {
       setError(error.response?.data?.detail || 'Failed to cancel job');
+    }
+  };
+
+  const isExportEligible = () => {
+    return subscription && ['plan_2', 'plan_3'].includes(subscription.plan_id);
+  };
+
+  const handleExportMessages = async () => {
+    if (!id || !project) return;
+    
+    if (!isExportEligible()) {
+      showToast('error', 'Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature.');
+      return;
+    }
+
+    if (messages.length === 0) {
+      showToast('error', 'No messages to export. Generate some messages first.');
+      return;
+    }
+
+    setExporting(true);
+    
+    try {
+      const response = await apiService.exportProjectMessages(id);
+      
+      // Create download link
+      const blob = new Blob([response.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Extract filename from response headers or create default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `DMify_Messages_${project.name}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      showToast('success', `Excel file downloaded successfully! (${messages.length} messages)`);
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        showToast('error', 'Excel export is only available for Growth and Pro plan subscribers. Please upgrade your plan to access this feature.');
+      } else if (error.response?.status === 404) {
+        showToast('error', 'No messages found for this project.');
+      } else {
+        showToast('error', error.response?.data?.detail || 'Failed to export messages. Please try again.');
+      }
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -353,8 +418,56 @@ const ProjectDetail: React.FC = () => {
         <Link to="/app/projects" className="text-electric-blue hover:text-neon-purple text-sm font-medium mb-4 inline-block">
           ← Back to projects
         </Link>
-        <h1 className="text-4xl font-black text-primary-text font-space mb-2">{project.name}</h1>
-        <p className="text-secondary-text text-lg">Generate personalized Instagram DMs for this campaign</p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl font-black text-primary-text font-space mb-2">{project.name}</h1>
+            <p className="text-secondary-text text-lg">Generate personalized Instagram DMs for this campaign</p>
+          </div>
+          
+          {/* Export Button */}
+          {messages.length > 0 && (
+            <div className="flex items-center gap-3">
+              {isExportEligible() ? (
+                <button
+                  onClick={handleExportMessages}
+                  disabled={exporting}
+                  className="btn-secondary flex items-center gap-2 text-sm"
+                  title="Export messages to Excel file"
+                >
+                  {exporting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-electric-blue"></div>
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Export to Excel
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="group relative">
+                  <button
+                    className="btn-secondary flex items-center gap-2 text-sm opacity-50 cursor-not-allowed"
+                    disabled
+                    title="Excel export requires Growth or Pro plan"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Export to Excel
+                  </button>
+                  <div className="opacity-0 group-hover:opacity-100 absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-primary-text text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap z-10 transition-opacity">
+                    Upgrade to Growth or Pro plan
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Main Layout */}

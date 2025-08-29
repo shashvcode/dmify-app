@@ -209,6 +209,13 @@ class ApiService {
     return response.data;
   }
 
+  async exportProjectMessages(projectId: string) {
+    const response = await this.api.get(`/projects/${projectId}/export`, {
+      responseType: 'blob', // Important for file downloads
+    });
+    return response;
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
   }

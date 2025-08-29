@@ -99,6 +99,7 @@ const PricingPublic: React.FC = () => {
         features: [
           '500 messages/month',
           'Brand voice adaptation',
+          'Excel export feature',
           'Perfect for scaling',
           'Most popular choice'
         ]
@@ -109,6 +110,7 @@ const PricingPublic: React.FC = () => {
         features: [
           '1500 messages/month',
           'Advanced AI insights',
+          'Excel export feature',
           'Priority support',
           'Best value'
         ]
