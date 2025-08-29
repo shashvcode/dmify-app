@@ -10,7 +10,7 @@ load_dotenv()
 EMAIL_SENDING_KEY = os.getenv("EMAIL_SENDING_KEY")
 DOMAIN = "dmify.app"
 FROM_EMAIL = f"DMify <postmaster@{DOMAIN}>"
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify-app-1.onrender.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify.app")
 ADMIN_EMAIL = "shashi.optimizestudio@gmail.com"
 
 if not EMAIL_SENDING_KEY:
@@ -51,7 +51,7 @@ verification_template = """
             
             <!-- Header with Logo -->
             <div style="text-align: center; margin-bottom: 40px;">
-                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     Welcome to DMify!
                 </h1>
@@ -137,7 +137,7 @@ reset_password_template = """
             
             <!-- Header with Logo -->
             <div style="text-align: center; margin-bottom: 40px;">
-                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     Reset Your Password
                 </h1>
@@ -292,7 +292,7 @@ async def send_leads_ready_email(email: str, project_name: str, lead_count: int)
                 
                 <!-- Header with Logo -->
                 <div style="text-align: center; margin-bottom: 40px;">
-                    <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                    <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                     <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                         🎉 Your Leads Are Ready!
                     </h1>
@@ -429,7 +429,7 @@ admin_notification_template = """
             
             <!-- Header with Logo -->
             <div style="text-align: center; margin-bottom: 40px;">
-                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     🎉 New User Signup!
                 </h1>
@@ -453,7 +453,7 @@ admin_notification_template = """
                 
                 <!-- Quick Actions -->
                 <div style="text-align: center; margin: 40px 0;">
-                    <a href="https://dmify-app-1.onrender.com/app/dashboard" style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4); margin-right: 12px;">
+                    <a href="https://dmify.app/app/dashboard" style="display: inline-block; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4); margin-right: 12px;">
                         View Dashboard
                     </a>
                     <a href="mailto:{{ user_email }}" style="display: inline-block; background: transparent; color: #4F46E5; text-decoration: none; padding: 16px 32px; border: 2px solid #4F46E5; border-radius: 12px; font-weight: 600; font-size: 16px;">

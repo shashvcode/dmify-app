@@ -5,7 +5,8 @@ services:
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
     domains:
-      - dmify-app-1.onrender.com
+      - dmify.app
+      - www.dmify.app
     routes:
       - type: rewrite
         source: /*

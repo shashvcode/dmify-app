@@ -143,7 +143,7 @@ const PricingPublic: React.FC = () => {
         title="DMify - Pricing"
         description="Choose the perfect plan for your Instagram outreach needs. Generate AI-powered personalized DMs with transparent pricing. 10 free messages included."
         keywords="DMify pricing, Instagram DM automation pricing, AI Instagram DM generator cost, Instagram outreach tool pricing"
-        canonical="https://dmify-app-1.onrender.com/pricing"
+        canonical="https://dmify.app/pricing"
       />
       
       <div className="min-h-screen bg-hero-gradient relative overflow-hidden">

@@ -8,7 +8,7 @@ const TermsOfService: React.FC = () => {
         title="Terms of Service - DMify"
         description="DMify Terms of Service and User Agreement. Learn about our terms and conditions for using our AI-powered Instagram DM automation service."
         keywords="DMify terms of service, user agreement, terms and conditions, Instagram DM automation terms"
-        canonical="https://dmify-app-1.onrender.com/terms"
+        canonical="https://dmify.app/terms"
       />
       
       <div className="min-h-screen bg-hero-gradient">

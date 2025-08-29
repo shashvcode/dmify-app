@@ -118,7 +118,7 @@ const Login: React.FC = () => {
         title="DMify - Sign In"
         description="Sign in to DMify — access your AI Instagram DM generator and continue creating personalized Instagram outreach messages that get results."
         keywords="DMify login, sign in, AI Instagram DM generator, Instagram outreach tool, personalized DMs, Instagram DM automation"
-        canonical="https://dmify-app-1.onrender.com/login"
+        canonical="https://dmify.app/login"
       />
       <div className="min-h-screen bg-hero-gradient relative overflow-hidden flex items-center justify-center">
       {/* Floating Orbs */}

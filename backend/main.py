@@ -16,10 +16,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+        allow_origins=[
         "https://dmify.app",
         "https://www.dmify.app",
-        "https://dmify-app-1.onrender.com", 
         "https://dmify-app.onrender.com",  # Current backend domain
         "http://localhost:5173",  # For development
         "http://localhost:3000"   # For development

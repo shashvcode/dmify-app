@@ -195,7 +195,7 @@ const Landing: React.FC = () => {
         title="DMify - AI Instagram DM Generator"
         description="DMify is the best Instagram outreach tool for marketers. Generate AI-powered personalized Instagram DMs that get 3x higher responses. Try free today."
         keywords="AI Instagram DM generator, Instagram outreach tool, personalized DMs, Instagram DM automation, Instagram marketing, DM generator"
-        canonical="https://dmify-app-1.onrender.com"
+        canonical="https://dmify.app"
       />
       <div className="min-h-screen bg-off-white">
       {/* Navigation */}

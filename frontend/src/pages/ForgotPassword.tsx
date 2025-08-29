@@ -57,7 +57,7 @@ const ForgotPassword: React.FC = () => {
         title="Forgot Password - DMify"
         description="Reset your DMify password. Enter your email to receive password reset instructions."
         keywords="DMify forgot password, reset password, account recovery"
-        canonical="https://dmify-app-1.onrender.com/forgot-password"
+        canonical="https://dmify.app/forgot-password"
       />
       
       <div className="min-h-screen bg-hero-gradient flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
