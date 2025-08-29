@@ -15,39 +15,16 @@ interface CreditInfo {
   credits: number;
   total_earned: number;
   total_used: number;
-  subscription_remaining: number;
-  has_subscription: boolean;
-  total_remaining: number;
 }
 
-interface SubscriptionInfo {
-  has_subscription: boolean;
-  subscription_id?: string;
-  plan_id?: string;
-  status?: string;
-  monthly_allowance?: number;
-  used_this_month?: number;
-  current_period_start?: string;
-  current_period_end?: string;
-  cancel_at_period_end?: boolean;
-  plan_details?: {
-    plan_id: string;
-    name: string;
-    description: string;
-    amount: number;
-    messages: number;
-    price_id: string;
-  };
-}
+
 
 const Payments: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<PaymentPlan[]>([]);
   const [credits, setCredits] = useState<CreditInfo | null>(null);
-  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState('');
-  const [canceling, setCanceling] = useState(false);
   const [error, setError] = useState('');
   const [preSelectedPlan, setPreSelectedPlan] = useState<string | null>(null);
 
@@ -64,41 +41,22 @@ const Payments: React.FC = () => {
     // Check for payment success and refresh data
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
-      const refreshAfterPayment = async () => {
-        try {
-          console.log('Payment success detected, refreshing subscription...');
-          await apiService.refreshSubscription();
-          console.log('Subscription refresh successful, fetching payment data...');
-          await fetchData();
-        } catch (error) {
-          console.error('Failed to refresh subscription after payment:', error);
-          // Fallback to normal refresh
-          setTimeout(() => {
-            fetchData();
-          }, 2000);
-        }
-      };
-      
-      // Try immediate refresh
-      refreshAfterPayment();
-      // Backup refresh
+      // Refresh data after successful payment
       setTimeout(() => {
         fetchData();
-      }, 3000);
+      }, 1000);
     }
   }, [searchParams]);
 
   const fetchData = async () => {
     try {
-      const [plansData, creditsData, subscriptionData] = await Promise.all([
+      const [plansData, creditsData] = await Promise.all([
         apiService.getPaymentPlans(),
-        apiService.getUserCredits(),
-        apiService.getUserSubscription()
+        apiService.getUserCredits()
       ]);
       
       setPlans(plansData);
       setCredits(creditsData);
-      setSubscription(subscriptionData);
     } catch (error: any) {
       console.error('Failed to fetch payment data:', error);
       setError('Failed to load payment information');
@@ -123,20 +81,7 @@ const Payments: React.FC = () => {
     }
   };
 
-  const handleCancelSubscription = async () => {
-    setCanceling(true);
-    setError('');
 
-    try {
-      await apiService.cancelSubscription();
-      await fetchData(); // Refresh subscription data
-    } catch (error: any) {
-      console.error('Failed to cancel subscription:', error);
-      setError(error.response?.data?.detail || 'Failed to cancel subscription');
-    } finally {
-      setCanceling(false);
-    }
-  };
 
   const formatPrice = (amount: number) => {
     return `$${(amount / 100).toFixed(2)}`;
@@ -157,7 +102,7 @@ const Payments: React.FC = () => {
 
   const getPlanFeatures = (planId: string) => {
     const baseFeatures = [
-      'Monthly message allowance',
+      'Credits never expire',
       'Use across all projects',
       'AI analysis included'
     ];
@@ -167,7 +112,7 @@ const Payments: React.FC = () => {
       baseFeatures.push('Excel export feature');
     }
     
-    baseFeatures.push('Cancel anytime');
+    baseFeatures.push('No monthly fees');
     return baseFeatures;
   };
 
@@ -192,14 +137,9 @@ const Payments: React.FC = () => {
 
       {/* Header */}
       <div className="credits-header">
-        <h1 className="credits-title">
-          {subscription?.has_subscription ? 'Manage Your Plan' : 'Upgrade Your Account'}
-        </h1>
+        <h1 className="credits-title">Buy Message Credits</h1>
         <p className="credits-subtitle">
-          {subscription?.has_subscription 
-            ? 'Manage your subscription and view message usage'
-            : 'Upgrade to unlock unlimited message generation and premium features'
-          }
+          Purchase message credits that never expire. Use them whenever you need to generate personalized DMs.
         </p>
       </div>
 
@@ -207,114 +147,32 @@ const Payments: React.FC = () => {
       {credits && (
         <div className="credits-summary-card">
           <div className="credits-summary-grid">
-            {credits.has_subscription ? (
-              <>
-                <div className="credits-tile available">
-                  <div className="credits-tile-label">Messages Remaining</div>
-                  <div className="credits-tile-value">{credits.subscription_remaining}</div>
-                  <div className="credits-tile-microcopy">This billing period</div>
-                </div>
-                <div className="credits-tile earned">
-                  <div className="credits-tile-label">Monthly Allowance</div>
-                  <div className="credits-tile-value">{subscription?.monthly_allowance || 0}</div>
-                  <div className="credits-tile-microcopy">Resets monthly</div>
-                </div>
-                <div className="credits-tile used">
-                  <div className="credits-tile-label">Used This Month</div>
-                  <div className="credits-tile-value">{subscription?.used_this_month || 0}</div>
-                  <div className="credits-tile-microcopy">1 DM = 1 message</div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="credits-tile available">
-                  <div className="credits-tile-label">Free Messages</div>
-                  <div className="credits-tile-value">{credits.credits}</div>
-                  <div className="credits-tile-microcopy">Never expire</div>
-                </div>
-                <div className="credits-tile earned">
-                  <div className="credits-tile-label">Messages Generated</div>
-                  <div className="credits-tile-value">{credits.total_used}</div>
-                  <div className="credits-tile-microcopy">All-time total</div>
-                </div>
-                <div className="credits-tile used">
-                  <div className="credits-tile-label">Ready to Scale?</div>
-                  <div className="credits-tile-value">⚡</div>
-                  <div className="credits-tile-microcopy">Upgrade for unlimited</div>
-                </div>
-              </>
-            )}
-          </div>
-          {credits.has_subscription && credits.credits > 0 && (
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                💎 You also have <strong>{credits.credits} bonus messages</strong> that never expire!
-              </p>
+            <div className="credits-tile available">
+              <div className="credits-tile-label">Available Credits</div>
+              <div className="credits-tile-value">{credits.credits}</div>
+              <div className="credits-tile-microcopy">Never expire</div>
             </div>
-          )}
+            <div className="credits-tile earned">
+              <div className="credits-tile-label">Total Purchased</div>
+              <div className="credits-tile-value">{credits.total_earned}</div>
+              <div className="credits-tile-microcopy">All-time total</div>
+            </div>
+            <div className="credits-tile used">
+              <div className="credits-tile-label">Messages Generated</div>
+              <div className="credits-tile-value">{credits.total_used}</div>
+              <div className="credits-tile-microcopy">Successfully created</div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Subscription Management / Plans */}
-      {subscription?.has_subscription && (
-        <div className="credits-plans-card">
-          <div className="credits-plans-header">
-            <h2 className="credits-plans-title">Current Subscription</h2>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              subscription.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {subscription.status?.toUpperCase()}
-            </span>
-          </div>
-          
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-lg border">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold">
-                  {subscription.plan_details?.name || plans.find(p => p.plan_id === subscription.plan_id)?.name || 'Current Plan'}
-                </h3>
-                <p className="text-gray-600">
-                  {formatPrice(subscription.plan_details?.amount || plans.find(p => p.plan_id === subscription.plan_id)?.amount || 0)} per month
-                </p>
-                {subscription.plan_details && (
-                  <p className="text-sm text-gray-500">
-                    {getPricePerMessage(subscription.plan_details.amount, subscription.plan_details.messages)}
-                  </p>
-                )}
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-600">Next billing</p>
-                <p className="font-medium">
-                  {subscription.current_period_end ? new Date(subscription.current_period_end).toLocaleDateString() : 'N/A'}
-                </p>
-              </div>
-            </div>
-            
-            {subscription.cancel_at_period_end ? (
-              <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-lg">
-                <p className="font-medium">⚠️ Subscription will be canceled</p>
-                <p className="text-sm">Your subscription will end on {new Date(subscription.current_period_end || '').toLocaleDateString()}. You'll still have access until then.</p>
-              </div>
-            ) : (
-              <button
-                onClick={handleCancelSubscription}
-                disabled={canceling}
-                className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-              >
-                {canceling ? 'Canceling...' : 'Cancel Subscription'}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* Plans */}
       <div className="credits-plans-card">
         <div className="credits-plans-header">
-          <h2 className="credits-plans-title">
-            {subscription?.has_subscription ? 'Change Your Plan' : 'Upgrade Plans'}
-          </h2>
-          <a href="#" className="credits-plans-link">View billing history</a>
+          <h2 className="credits-plans-title">Credit Packs</h2>
+          <a href="#" className="credits-plans-link">View purchase history</a>
         </div>
         
         <div className="credits-plans-grid">
@@ -341,13 +199,13 @@ const Payments: React.FC = () => {
                 <div className="text-center">
                   <h3 className="credits-plan-title">{plan.name}</h3>
                   <div className="credits-plan-price">
-                    {formatPrice(plan.amount)}<span className="text-sm font-normal">/month</span>
+                    {formatPrice(plan.amount)}<span className="text-sm font-normal"> one-time</span>
                   </div>
                   <div className="credits-plan-price-per">
                     {getPricePerMessage(plan.amount, plan.messages)}
                   </div>
                   <div className="credits-plan-quantity">
-                    {plan.messages} Messages/Month
+                    {plan.messages} Message Credits
                   </div>
                   
                   <div className="credits-plan-features">
@@ -363,23 +221,16 @@ const Payments: React.FC = () => {
                   
                   <button
                     onClick={() => handlePurchase(plan.plan_id)}
-                    disabled={purchasing === plan.plan_id || (subscription?.has_subscription && subscription.plan_id === plan.plan_id && !subscription.cancel_at_period_end)}
-                    className={`credits-plan-button ${isPopular ? 'primary' : 'secondary'} ${
-                      subscription?.has_subscription && subscription.plan_id === plan.plan_id && !subscription.cancel_at_period_end 
-                        ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    disabled={purchasing === plan.plan_id}
+                    className={`credits-plan-button ${isPopular ? 'primary' : 'secondary'}`}
                   >
                     {purchasing === plan.plan_id ? (
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                         Processing...
                       </div>
-                    ) : subscription?.has_subscription && subscription.plan_id === plan.plan_id && !subscription.cancel_at_period_end ? (
-                      'Current Plan'
-                    ) : subscription?.has_subscription ? (
-                      'Switch to This Plan'
                     ) : (
-                      'Upgrade Now'
+                      'Buy Credits'
                     )}
                   </button>
                 </div>
@@ -394,7 +245,7 @@ const Payments: React.FC = () => {
         
         <div className="credits-trust-footer">
           <p>Secure payments via Stripe.</p>
-          <p>Cancel anytime. Upgrade or downgrade your plan as needed.</p>
+          <p>Credits never expire. Purchase more anytime you need them.</p>
         </div>
       </div>
     </div>

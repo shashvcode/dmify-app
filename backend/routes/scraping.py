@@ -44,19 +44,13 @@ async def generate_dm_message(
             detail="Username cannot be empty"
         )
     
-    # Check if user has available messages (subscription or credits)
-    allowance_info = Database.get_user_message_allowance(current_user["_id"])
-    if allowance_info["total_remaining"] <= 0:
-        if allowance_info["has_subscription"]:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Monthly message limit reached. Your allowance will reset at the next billing period."
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Insufficient credits. Please subscribe or purchase more credits to continue generating messages."
-            )
+    # Check if user has available credits
+    current_credits = Database.get_user_credits(current_user["_id"])
+    if current_credits <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Insufficient credits. Please purchase more credits to continue generating messages."
+        )
 
     project = Database.get_project_by_id(project_id, current_user["_id"])
     if not project:
@@ -315,16 +309,16 @@ def process_dm_job(job_id: str):
             Database.fail_dm_job(job_id, "Project or user not found")
             return
         
-        # Check message allowance before processing
-        allowance_info = Database.get_user_message_allowance(job["user_id"])
-        if allowance_info["total_remaining"] <= 0:
-            Database.fail_dm_job(job_id, "Insufficient message allowance")
+        # Check credit balance before processing
+        current_credits = Database.get_user_credits(job["user_id"])
+        if current_credits <= 0:
+            Database.fail_dm_job(job_id, "Insufficient credits")
             return
         
-        # Use message from allowance
-        message_used = Database.use_monthly_message(job["user_id"])
-        if not message_used:
-            Database.fail_dm_job(job_id, "Failed to use message allowance")
+        # Use one credit
+        credit_used = Database.use_credit(job["user_id"])
+        if not credit_used:
+            Database.fail_dm_job(job_id, "Failed to use credit")
             return
         
         try:
@@ -340,8 +334,8 @@ def process_dm_job(job_id: str):
             )
             
             if not result["success"]:
-                # Refund message if scraping failed
-                Database.refund_monthly_message(job["user_id"])
+                # Refund credit if scraping failed (e.g., private profile)
+                Database.add_credits(job["user_id"], 1, "refund_failed_message")
                 Database.fail_dm_job(job_id, result["error"])
                 return
             
@@ -359,8 +353,8 @@ def process_dm_job(job_id: str):
             Database.complete_dm_job(job_id, result)
             
         except Exception as e:
-            # Refund message on error
-            Database.refund_monthly_message(job["user_id"])
+            # Refund credit on error
+            Database.add_credits(job["user_id"], 1, "refund_processing_error")
             Database.fail_dm_job(job_id, f"Processing error: {str(e)}")
             
     except Exception as e:
@@ -382,19 +376,13 @@ async def queue_dm_generation(
             detail="Username cannot be empty"
         )
     
-    # Check if user has available messages (subscription or credits)
-    allowance_info = Database.get_user_message_allowance(current_user["_id"])
-    if allowance_info["total_remaining"] <= 0:
-        if allowance_info["has_subscription"]:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Monthly message limit reached. Your allowance will reset at the next billing period."
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Insufficient credits. Please subscribe or purchase more credits to continue generating messages."
-            )
+    # Check if user has available credits
+    current_credits = Database.get_user_credits(current_user["_id"])
+    if current_credits <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Insufficient credits. Please purchase more credits to continue generating messages."
+        )
 
     # Verify project exists and belongs to user
     project = Database.get_project_by_id(project_id, current_user["_id"])

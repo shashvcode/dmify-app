@@ -83,36 +83,36 @@ const PricingPublic: React.FC = () => {
       description: string;
     }> = {
       'plan_1': {
-        name: 'Starter Plan',
+        name: 'Starter Pack',
         description: 'Perfect for testing the waters',
         features: [
-          '100 messages/month',
+          '100 message credits',
           'AI profile analysis',
-          'Good for starting out',
-          'Monthly refresh'
+          'No expiration',
+          'Credits never expire'
         ]
       },
       'plan_2': {
-        name: 'Growth Plan',
+        name: 'Growth Pack',
         description: 'Best value for growing brands',
         isPopular: true,
         features: [
-          '500 messages/month',
+          '500 message credits',
           'Brand voice adaptation',
           'Excel export feature',
-          'Perfect for scaling',
+          'Credits never expire',
           'Most popular choice'
         ]
       },
       'plan_3': {
-        name: 'Pro Plan',
+        name: 'Pro Pack',
         description: 'Scale your outreach empire',
         features: [
-          '1500 messages/month',
+          '1500 message credits',
           'Advanced AI insights',
           'Excel export feature',
-          'Priority support',
-          'Best value'
+          'Credits never expire',
+          'Best value per message'
         ]
       }
     };
@@ -121,9 +121,9 @@ const PricingPublic: React.FC = () => {
       name: plan.name,
       description: plan.description,
       features: [
-        `${plan.messages} Monthly Messages`,
+        `${plan.messages} Message Credits`,
         'AI-powered profile analysis',
-        'Cancel anytime'
+        'Credits never expire'
       ]
     };
   };
@@ -187,8 +187,8 @@ const PricingPublic: React.FC = () => {
           {/* Hero Section */}
           <div className={`text-center mb-16 transition-all duration-800 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-primary-text mb-6 font-space leading-tight">
-              💡 Simple Monthly Plans —{' '}
-              <span className="gradient-text">Scale Your Instagram Outreach</span>
+              💰 Simple Credit Packs —{' '}
+              <span className="gradient-text">Buy Once, Use Anytime</span>
             </h1>
 
             <div className="glass-card max-w-md mx-auto">
@@ -245,7 +245,7 @@ const PricingPublic: React.FC = () => {
                     </div>
                     <h3 className="text-2xl font-bold text-primary-text mb-2 font-space">{enhancedPlan.name}</h3>
                     <div className="text-4xl font-black text-primary-text mb-2">
-                      {formatPrice(plan.amount)}<span className="text-lg font-normal">/month</span>
+                      {formatPrice(plan.amount)}<span className="text-lg font-normal"> one-time</span>
                     </div>
                     <div className="text-sm text-secondary-text mb-6">
                       {getPricePerMessage(plan.amount, plan.messages)}
@@ -279,7 +279,7 @@ const PricingPublic: React.FC = () => {
                           Processing...
                         </div>
                       ) : (
-                        'Get Started'
+                        'Buy Credits'
                       )}
                     </button>
                   </div>
