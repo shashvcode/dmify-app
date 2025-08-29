@@ -233,6 +233,19 @@ async def get_user_subscription(current_user: dict = Depends(get_current_user)):
     if not subscription:
         return {"has_subscription": False}
     
+    # Get plan details from PAYMENT_PLANS to include pricing information
+    plan_details = None
+    if subscription["plan_id"] in PAYMENT_PLANS:
+        plan_data = PAYMENT_PLANS[subscription["plan_id"]]
+        plan_details = {
+            "plan_id": subscription["plan_id"],
+            "name": plan_data["name"],
+            "description": plan_data["description"],
+            "amount": plan_data["amount"],  # This is the missing pricing data!
+            "messages": plan_data["messages"],
+            "price_id": plan_data["price_id"]
+        }
+    
     return {
         "has_subscription": True,
         "subscription_id": subscription["stripe_subscription_id"],
@@ -242,7 +255,8 @@ async def get_user_subscription(current_user: dict = Depends(get_current_user)):
         "used_this_month": subscription["used_this_month"],
         "current_period_start": subscription["current_period_start"].isoformat(),
         "current_period_end": subscription["current_period_end"].isoformat(),
-        "cancel_at_period_end": subscription["cancel_at_period_end"]
+        "cancel_at_period_end": subscription["cancel_at_period_end"],
+        "plan_details": plan_details  # Now includes current plan pricing!
     }
 
 @router.post("/cancel-subscription")
@@ -381,12 +395,29 @@ async def refresh_subscription_from_stripe(current_user: dict = Depends(get_curr
                 success = subscription_id is not None
             
             if success:
-                # Return the updated subscription
+                # Return the updated subscription with plan details
                 updated_subscription = Database.get_user_subscription(current_user["_id"])
+                
+                # Include plan pricing details
+                plan_details = None
+                if updated_subscription and updated_subscription["plan_id"] in PAYMENT_PLANS:
+                    plan_data = PAYMENT_PLANS[updated_subscription["plan_id"]]
+                    plan_details = {
+                        "plan_id": updated_subscription["plan_id"],
+                        "name": plan_data["name"],
+                        "description": plan_data["description"],
+                        "amount": plan_data["amount"],
+                        "messages": plan_data["messages"],
+                        "price_id": plan_data["price_id"]
+                    }
+                
                 return {
                     "success": True,
                     "message": "Subscription refreshed successfully",
-                    "subscription": updated_subscription,
+                    "subscription": {
+                        **updated_subscription,
+                        "plan_details": plan_details
+                    },
                     "has_subscription": True
                 }
             else:
