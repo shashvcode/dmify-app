@@ -19,7 +19,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Preserve payment success parameters when redirecting to login
+    const paymentParams = new URLSearchParams();
+    if (location.search.includes('payment=success')) {
+      const params = new URLSearchParams(location.search);
+      if (params.get('payment')) paymentParams.set('payment', params.get('payment')!);
+      if (params.get('session_id')) paymentParams.set('session_id', params.get('session_id')!);
+    }
+    
+    const loginUrl = paymentParams.toString() 
+      ? `/login?${paymentParams.toString()}` 
+      : '/login';
+      
+    return <Navigate to={loginUrl} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
