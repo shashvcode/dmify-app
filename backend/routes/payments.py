@@ -64,8 +64,8 @@ async def create_checkout_session(
             detail="Invalid plan_id"
         )
     
-    # Create checkout session - use landing page with redirect logic
-    success_url = os.getenv("FRONTEND_URL", "https://dmify.app") + "/?payment=success&session_id={CHECKOUT_SESSION_ID}"
+    # Create checkout session
+    success_url = os.getenv("FRONTEND_URL", "https://dmify.app") + "/app/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}"
     cancel_url = os.getenv("FRONTEND_URL", "https://dmify.app") + "/app/dashboard?payment=cancelled"
     
     session_data = PaymentService.create_checkout_session(

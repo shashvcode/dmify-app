@@ -20,7 +20,6 @@ import ProjectDetail from './pages/ProjectDetail';
 import Messages from './pages/Messages';
 import Payments from './pages/Payments';
 import PricingPublic from './pages/PricingPublic';
-import PaymentSuccess from './pages/PaymentSuccess';
 import Goodbye from './pages/Goodbye';
 
 function App() {
@@ -38,7 +37,6 @@ function App() {
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/goodbye" element={<Goodbye />} />
@@ -61,9 +59,6 @@ function App() {
             <Route path="/dashboard" element={<Navigate to="/app/dashboard" replace />} />
             <Route path="/projects" element={<Navigate to="/app/projects" replace />} />
             <Route path="/messages" element={<Navigate to="/app/messages" replace />} />
-            
-            {/* Catch-all route for unmatched paths */}
-            <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
         </Router>

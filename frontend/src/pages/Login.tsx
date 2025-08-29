@@ -34,22 +34,9 @@ const Login: React.FC = () => {
       const returnTo = searchParams.get('returnTo');
       const planId = searchParams.get('plan');
       
-      // Check for payment success parameters
-      const paymentStatus = searchParams.get('payment');
-      const sessionId = searchParams.get('session_id');
-      
       if (returnTo === '/pricing' && planId) {
         // Redirect to payments page with the selected plan
         navigate(`/app/payments?plan=${planId}`, { replace: true });
-      } else if (returnTo === '/payment-success' && paymentStatus === 'success') {
-        // Redirect back to payment success page to handle the redirect properly
-        const successParams = new URLSearchParams();
-        successParams.set('payment', 'success');
-        if (sessionId) successParams.set('session_id', sessionId);
-        navigate(`/payment-success?${successParams.toString()}`, { replace: true });
-      } else if (paymentStatus === 'success' && sessionId) {
-        // Redirect to dashboard with payment success parameters
-        navigate(`/app/dashboard?payment=success&session_id=${sessionId}`, { replace: true });
       } else {
         const from = location.state?.from?.pathname || '/app/dashboard';
         navigate(from, { replace: true });
