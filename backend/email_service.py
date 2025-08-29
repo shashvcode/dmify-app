@@ -10,7 +10,7 @@ load_dotenv()
 EMAIL_SENDING_KEY = os.getenv("EMAIL_SENDING_KEY")
 DOMAIN = "dmify.app"
 FROM_EMAIL = f"DMify <postmaster@{DOMAIN}>"
-FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify.app")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://dmify-app-1.onrender.com")
 
 if not EMAIL_SENDING_KEY:
     logging.error("EMAIL_SENDING_KEY environment variable not found!")
@@ -50,7 +50,7 @@ verification_template = """
             
             <!-- Header with Logo -->
             <div style="text-align: center; margin-bottom: 40px;">
-                <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     Welcome to DMify!
                 </h1>
@@ -136,7 +136,7 @@ reset_password_template = """
             
             <!-- Header with Logo -->
             <div style="text-align: center; margin-bottom: 40px;">
-                <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     Reset Your Password
                 </h1>
@@ -291,7 +291,7 @@ async def send_leads_ready_email(email: str, project_name: str, lead_count: int)
                 
                 <!-- Header with Logo -->
                 <div style="text-align: center; margin-bottom: 40px;">
-                    <img src="https://dmify.app/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
+                    <img src="https://dmify-app-1.onrender.com/dmifylogo.png" alt="DMify" style="height: 48px; margin-bottom: 20px;">
                     <h1 style="margin: 0; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                         🎉 Your Leads Are Ready!
                     </h1>

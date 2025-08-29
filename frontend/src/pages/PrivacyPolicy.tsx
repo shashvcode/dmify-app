@@ -8,7 +8,7 @@ const PrivacyPolicy: React.FC = () => {
         title="Privacy Policy - DMify"
         description="DMify Privacy Policy. Learn how we collect, use, and protect your personal information when using our AI-powered Instagram DM automation service."
         keywords="DMify privacy policy, data protection, privacy, Instagram DM automation privacy"
-        canonical="https://dmify.app/privacy"
+        canonical="https://dmify-app-1.onrender.com/privacy"
       />
       
       <div className="min-h-screen bg-hero-gradient">
