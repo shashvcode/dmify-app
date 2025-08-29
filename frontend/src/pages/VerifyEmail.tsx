@@ -16,6 +16,7 @@ const VerifyEmail: React.FC = () => {
   const email = location.state?.email || '';
 
   useEffect(() => {
+    document.title = "DMify - Verify Email";
     if (!email) {
       navigate('/signup');
     }

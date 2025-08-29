@@ -2,6 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Goodbye: React.FC = () => {
+  React.useEffect(() => {
+    document.title = "DMify - Goodbye";
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
       <div className="max-w-md mx-auto text-center">

@@ -29,6 +29,7 @@ const Projects: React.FC = () => {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
+    document.title = "DMify - Projects";
     fetchProjects();
   }, []);
 

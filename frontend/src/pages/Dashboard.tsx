@@ -39,6 +39,7 @@ const Dashboard: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    document.title = "DMify - Dashboard";
     setIsVisible(true);
     
     const fetchDashboardData = async () => {

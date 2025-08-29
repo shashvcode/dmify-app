@@ -11,27 +11,27 @@ const MomentumTimeline: React.FC = () => {
 
   const milestones = [
     { 
-      number: '95%', 
-      label: 'Success Rate', 
+      number: '100%', 
+      label: 'Message Success Rate', 
       microcopy: 'AI-crafted Instagram messages',
       delay: 0 
     },
     { 
-      number: '10K+', 
-      label: 'Personalized DMs Sent', 
+      number: '137K+', 
+      label: 'DMs Sent', 
       microcopy: 'Scaling outreach with automation',
       delay: 150 
     },
     { 
-      number: '500+', 
-      label: 'Marketers & Agencies', 
+      number: '641+', 
+      label: 'Businesses Helped', 
       microcopy: 'Using DMify daily',
       delay: 300 
     },
     { 
-      number: '3×', 
-      label: 'Higher Response Rates', 
-      microcopy: 'Than copy-paste DMs',
+      number: '6.5×', 
+      label: 'Response Rate Increase', 
+      microcopy: 'Than static copy-paste DMs',
       delay: 450 
     },
   ];
@@ -192,7 +192,7 @@ const Landing: React.FC = () => {
   return (
     <>
       <SEOHead
-        title="DMify – AI Instagram DM Generator | Personalized Outreach at Scale"
+        title="DMify - AI Instagram DM Generator"
         description="DMify is the best Instagram outreach tool for marketers. Generate AI-powered personalized Instagram DMs that get 3x higher responses. Try free today."
         keywords="AI Instagram DM generator, Instagram outreach tool, personalized DMs, Instagram DM automation, Instagram marketing, DM generator"
         canonical="https://dmify.app"
@@ -342,8 +342,7 @@ const Landing: React.FC = () => {
               Why DMify is the Best Instagram Outreach Tool
             </h2>
             <p className="text-xl text-secondary-text max-w-3xl mx-auto leading-relaxed">
-              Our AI analyzes Instagram profiles to create <strong className="text-primary-text">personalized messages</strong> that feel human and authentic, 
-              delivering the highest response rates in <strong className="text-primary-text">Instagram DM automation</strong>
+              Instagram DM automation that creates <strong className="text-primary-text">personalized Instagram messages</strong> for better connections and results
             </p>
           </div>
 
@@ -355,10 +354,9 @@ const Landing: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">AI-Powered Analysis</h3>
+                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">Smart AI Insights</h3>
                 <p className="text-secondary-text leading-relaxed">
-                  Our advanced AI analyzes bios, posts, and engagement patterns to understand each user's interests, 
-                  creating the perfect foundation for <strong className="text-primary-text">personalized Instagram DMs</strong>
+                  Analyze bios and posts to create <strong className="text-primary-text">personalized Instagram messages</strong> that connect
                 </p>
               </div>
             </div>
@@ -370,10 +368,9 @@ const Landing: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">Personalized Messages</h3>
+                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">Smart Personalized Messages</h3>
                 <p className="text-secondary-text leading-relaxed">
-                  Every message is crafted specifically for the recipient, mentioning their achievements, interests, and recent posts. 
-                  This <strong className="text-primary-text">Instagram outreach tool</strong> ensures authentic connections every time
+                  Our messages build credibility by mentioning their interests and posts. <strong className="text-primary-text">AI Instagram outreach</strong> that feels natural and relevant
                 </p>
               </div>
             </div>
@@ -385,10 +382,9 @@ const Landing: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">Higher Response Rates</h3>
+                <h3 className="text-2xl font-bold text-primary-text mb-4 font-space">Better Results</h3>
                 <p className="text-secondary-text leading-relaxed">
-                  <strong className="text-primary-text">Personalized messages</strong> generated by our AI get 3x higher response rates 
-                  compared to generic outreach, making this the most effective <strong className="text-primary-text">Instagram DM automation</strong> solution
+                  Get significantly <strong className="text-primary-text">higher response rates</strong> with <strong className="text-primary-text">Instagram DM automation</strong> that works
                 </p>
               </div>
             </div>
@@ -397,64 +393,14 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Momentum Timeline Section */}
-      <section className="section-spacing relative overflow-hidden">
+      <section className="py-12 md:py-16 relative overflow-hidden">
         <div className="floating-orb bg-neon-purple w-64 h-64 top-10 right-20 blur-3xl"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <MomentumTimeline />
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="section-spacing bg-white/30 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-black text-primary-text mb-6 font-space">
-              How DMify Generates Personalized Instagram DMs in Seconds
-            </h2>
-            <p className="text-xl text-secondary-text max-w-3xl mx-auto leading-relaxed">
-              Our <strong className="text-primary-text">AI Instagram DM generator</strong> makes personalized outreach effortless
-            </p>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center group">
-              <div className="glass-card hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-8 text-white text-2xl font-black font-space group-hover:shadow-glow transition-all duration-300">
-                  1
-                </div>
-                <h3 className="text-xl font-bold text-primary-text mb-4 font-space">Enter Details</h3>
-                <p className="text-secondary-text leading-relaxed">
-                  Simply enter your product/service details and the Instagram username you want to reach
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center group">
-              <div className="glass-card hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-8 text-white text-2xl font-black font-space group-hover:shadow-glow transition-all duration-300">
-                  2
-                </div>
-                <h3 className="text-xl font-bold text-primary-text mb-4 font-space">AI Analysis</h3>
-                <p className="text-secondary-text leading-relaxed">
-                  Our AI analyzes their bio, recent posts, and engagement to understand their interests and personality
-                </p>
-              </div>
-            </div>
-
-            <div className="text-center group">
-              <div className="glass-card hover:scale-105 transition-all duration-300">
-                <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-8 text-white text-2xl font-black font-space group-hover:shadow-glow transition-all duration-300">
-                  3
-                </div>
-                <h3 className="text-xl font-bold text-primary-text mb-4 font-space">Get Perfect DM</h3>
-                <p className="text-secondary-text leading-relaxed">
-                  Instantly receive a personalized, ready-to-send Instagram DM that feels authentic and engaging
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Final CTA Section */}
       <section className="bg-cta-gradient section-spacing relative overflow-hidden">
@@ -475,9 +421,7 @@ const Landing: React.FC = () => {
           >
             Start Free →
           </Link>
-          <p className="text-white/80 mt-6 text-lg">
-            🎉 New users get 10 free messages to start!
-          </p>
+
         </div>
       </section>
 

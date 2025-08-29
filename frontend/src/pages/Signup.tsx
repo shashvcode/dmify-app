@@ -188,7 +188,7 @@ const Signup: React.FC = () => {
   return (
     <>
       <SEOHead
-        title="Create Your DMify Account | AI Instagram DM Generator"
+        title="DMify - Sign Up"
         description="Sign up to DMify — the AI Instagram outreach tool that creates personalized DMs at scale and boosts response rates. Start your free trial today."
         keywords="DMify signup, AI Instagram DM generator, Instagram outreach tool, personalized DMs, Instagram DM automation, create account"
         canonical="https://dmify.app/signup"

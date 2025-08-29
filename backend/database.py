@@ -200,6 +200,62 @@ class Database:
         except:
             return False
     
+    @staticmethod
+    def create_password_reset_token(email: str) -> str:
+        """Create secure reset token, reusing verification collection"""
+        token = secrets.token_urlsafe(32)  # Cryptographically secure
+        
+        reset_doc = {
+            "email": email.lower(),
+            "code": token,  # Reuse 'code' field for token
+            "created_at": datetime.utcnow(),
+            "expires_at": datetime.utcnow() + timedelta(hours=1),  # 1 hour expiry
+            "used": False,
+            "type": "password_reset"  # Distinguish from email verification
+        }
+        
+        # Remove any existing reset tokens for this email
+        verification_codes_collection.delete_many({
+            "email": email.lower(), 
+            "type": "password_reset"
+        })
+        verification_codes_collection.insert_one(reset_doc)
+        return token
+    
+    @staticmethod
+    def verify_reset_token(email: str, token: str) -> bool:
+        """Verify reset token and mark as used"""
+        try:
+            reset_request = verification_codes_collection.find_one({
+                "email": email.lower(),
+                "code": token,
+                "type": "password_reset",
+                "used": False,
+                "expires_at": {"$gt": datetime.utcnow()}
+            })
+            
+            if reset_request:
+                verification_codes_collection.update_one(
+                    {"_id": reset_request["_id"]},
+                    {"$set": {"used": True}}
+                )
+                return True
+            return False
+        except:
+            return False
+    
+    @staticmethod
+    def update_user_password(email: str, new_password_hash: str) -> bool:
+        """Update user password"""
+        try:
+            result = users_collection.update_one(
+                {"email": email.lower()},
+                {"$set": {"password_hash": new_password_hash}}
+            )
+            return result.modified_count > 0
+        except:
+            return False
+    
     # Credit Management Methods
     @staticmethod
     def initialize_user_credits(user_id: str) -> None:

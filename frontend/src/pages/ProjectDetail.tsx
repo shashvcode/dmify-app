@@ -74,6 +74,7 @@ const ProjectDetail: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+    document.title = "DMify - Project Detail";
     fetchProjectData();
     startPolling();
     

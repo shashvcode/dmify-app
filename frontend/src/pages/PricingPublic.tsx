@@ -78,50 +78,45 @@ const PricingPublic: React.FC = () => {
   const getEnhancedPlanData = (plan: PaymentPlan) => {
     const planMapping: Record<string, { 
       name: string; 
-      emoji: string; 
       features: string[]; 
       isPopular?: boolean;
       description: string;
     }> = {
       'plan_1': {
         name: 'Starter Plan',
-        emoji: '🚀',
         description: 'Perfect for testing the waters',
         features: [
-          '100 Monthly Messages',
-          'AI-powered profile analysis',
-          'Cancel anytime',
-          'Resets every month'
+          '100 messages/month',
+          'AI profile analysis',
+          'Good for starting out',
+          'Monthly refresh'
         ]
       },
       'plan_2': {
         name: 'Growth Plan',
-        emoji: '📈',
         description: 'Best value for growing brands',
         isPopular: true,
         features: [
-          '500 Monthly Messages',
-          'AI-powered profile analysis',
-          'Cancel anytime',
-          'Best value for growing brands'
+          '500 messages/month',
+          'Brand voice adaptation',
+          'Perfect for scaling',
+          'Most popular choice'
         ]
       },
       'plan_3': {
         name: 'Pro Plan',
-        emoji: '⚡',
         description: 'Scale your outreach empire',
         features: [
-          '1500 Monthly Messages',
-          'AI-powered profile analysis',
+          '1500 messages/month',
+          'Advanced AI insights',
           'Priority support',
-          'Cancel anytime'
+          'Best value'
         ]
       }
     };
 
     return planMapping[plan.plan_id] || {
       name: plan.name,
-      emoji: '💎',
       description: plan.description,
       features: [
         `${plan.messages} Monthly Messages`,
@@ -142,7 +137,7 @@ const PricingPublic: React.FC = () => {
   return (
     <>
       <SEOHead
-        title="DMify Pricing | AI Instagram DM Generator Plans"
+        title="DMify - Pricing"
         description="Choose the perfect plan for your Instagram outreach needs. Generate AI-powered personalized DMs with transparent pricing. 10 free messages included."
         keywords="DMify pricing, Instagram DM automation pricing, AI Instagram DM generator cost, Instagram outreach tool pricing"
         canonical="https://dmify.app/pricing"
@@ -193,9 +188,7 @@ const PricingPublic: React.FC = () => {
               💡 Simple Monthly Plans —{' '}
               <span className="gradient-text">Scale Your Instagram Outreach</span>
             </h1>
-            <h2 className="text-xl md:text-2xl text-secondary-text mb-8 max-w-4xl mx-auto leading-relaxed">
-              Generate AI-powered, personalized Instagram DMs that convert. Monthly message allowances that reset every billing period.
-            </h2>
+
             <div className="glass-card max-w-md mx-auto">
               <p className="text-electric-blue font-bold text-lg">🎉 Get 10 free messages when you sign up today!</p>
             </div>
@@ -218,7 +211,7 @@ const PricingPublic: React.FC = () => {
                   key={plan.plan_id}
                   className={`glass-card relative transition-all duration-300 hover:scale-102 flex flex-col h-full ${
                     isPopular 
-                      ? 'ring-2 ring-electric-blue shadow-glow animate-pulse' 
+                      ? 'ring-2 ring-electric-blue shadow-glow' 
                       : 'hover:shadow-glass'
                   }`}
                 >
@@ -231,7 +224,23 @@ const PricingPublic: React.FC = () => {
                   )}
                   
                   <div className="text-center flex-1 flex flex-col pt-4">
-                    <div className="text-4xl mb-4">{enhancedPlan.emoji}</div>
+                    <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-4 group-hover:shadow-glow transition-all duration-300">
+                      {plan.plan_id === 'plan_1' && (
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      )}
+                      {plan.plan_id === 'plan_2' && (
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                      )}
+                      {plan.plan_id === 'plan_3' && (
+                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                      )}
+                    </div>
                     <h3 className="text-2xl font-bold text-primary-text mb-2 font-space">{enhancedPlan.name}</h3>
                     <div className="text-4xl font-black text-primary-text mb-2">
                       {formatPrice(plan.amount)}<span className="text-lg font-normal">/month</span>
@@ -277,58 +286,7 @@ const PricingPublic: React.FC = () => {
             })}
           </div>
           
-          {/* Trust & Security Section */}
-          <div className={`mb-16 transition-all duration-800 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-black text-primary-text mb-4 font-space">
-                Trusted by Marketers, Creators, and Agencies
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              <div className="text-center group">
-                <div className="glass-card hover:scale-105 transition-all duration-300">
-                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🔒 Secure Payments</h3>
-                  <p className="text-secondary-text leading-relaxed">
-                    Powered by Stripe with enterprise-grade encryption. Your payment data is always protected.
-                  </p>
-                </div>
-              </div>
 
-              <div className="text-center group">
-                <div className="glass-card hover:scale-105 transition-all duration-300">
-                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">📈 Proven Results</h3>
-                  <p className="text-secondary-text leading-relaxed">
-                    Users see up to 3x higher replies vs copy-paste DMs. Real results from real campaigns.
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-center group">
-                <div className="glass-card hover:scale-105 transition-all duration-300">
-                  <div className="w-16 h-16 bg-gradient-to-br from-electric-blue to-neon-purple rounded-full flex items-center justify-center mx-auto mb-6 group-hover:shadow-glow transition-all duration-300">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-bold text-primary-text mb-3 font-space">🤝 Cancel Anytime</h3>
-                  <p className="text-secondary-text leading-relaxed">
-                    No contracts or commitments. Cancel your subscription anytime with immediate effect.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
 
 
 

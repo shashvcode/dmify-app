@@ -44,6 +44,7 @@ const Payments: React.FC = () => {
   const [preSelectedPlan, setPreSelectedPlan] = useState<string | null>(null);
 
   useEffect(() => {
+    document.title = "DMify - Payments";
     fetchData();
     
     // Check if a plan is pre-selected from URL

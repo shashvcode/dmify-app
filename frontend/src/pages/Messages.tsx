@@ -18,6 +18,7 @@ const Messages: React.FC = () => {
   const [toast, setToast] = useState<{ type: 'success'; message: string } | null>(null);
 
   useEffect(() => {
+    document.title = "DMify - Messages";
     fetchMessages();
   }, []);
 
