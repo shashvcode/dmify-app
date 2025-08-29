@@ -44,13 +44,21 @@ const Payments: React.FC = () => {
   const [preSelectedPlan, setPreSelectedPlan] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "DMify - Payments";
+    document.title = "DMify - Upgrade";
     fetchData();
     
     // Check if a plan is pre-selected from URL
     const planId = searchParams.get('plan');
     if (planId) {
       setPreSelectedPlan(planId);
+    }
+    
+    // Check for payment success and refresh data
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      setTimeout(() => {
+        fetchData(); // Refresh to show updated subscription
+      }, 1000); // Small delay to allow webhook processing
     }
   }, [searchParams]);
 
@@ -122,13 +130,19 @@ const Payments: React.FC = () => {
   };
 
   const getPlanFeatures = (planId: string) => {
-    const commonFeatures = [
+    const baseFeatures = [
       'Monthly message allowance',
       'Use across all projects',
-      'AI analysis included',
-      'Cancel anytime'
+      'AI analysis included'
     ];
-    return commonFeatures;
+    
+    // Add Excel export for Growth and Pro plans (plan_2 and plan_3)
+    if (planId === 'plan_2' || planId === 'plan_3') {
+      baseFeatures.push('Excel export feature');
+    }
+    
+    baseFeatures.push('Cancel anytime');
+    return baseFeatures;
   };
 
   if (loading) {
@@ -153,12 +167,12 @@ const Payments: React.FC = () => {
       {/* Header */}
       <div className="credits-header">
         <h1 className="credits-title">
-          {subscription?.has_subscription ? 'Subscription Management' : 'Choose Your Plan'}
+          {subscription?.has_subscription ? 'Manage Your Plan' : 'Upgrade Your Account'}
         </h1>
         <p className="credits-subtitle">
           {subscription?.has_subscription 
-            ? 'Manage your subscription and view usage'
-            : 'Subscribe for monthly message allowances to generate personalized Instagram DMs'
+            ? 'Manage your subscription and view message usage'
+            : 'Upgrade to unlock unlimited message generation and premium features'
           }
         </p>
       </div>
@@ -188,19 +202,19 @@ const Payments: React.FC = () => {
             ) : (
               <>
                 <div className="credits-tile available">
-                  <div className="credits-tile-label">Available Credits</div>
+                  <div className="credits-tile-label">Free Messages</div>
                   <div className="credits-tile-value">{credits.credits}</div>
-                  <div className="credits-tile-microcopy">Credits never expire</div>
+                  <div className="credits-tile-microcopy">Never expire</div>
                 </div>
                 <div className="credits-tile earned">
-                  <div className="credits-tile-label">Total Earned</div>
-                  <div className="credits-tile-value">{credits.total_earned}</div>
-                  <div className="credits-tile-microcopy">All-time purchases</div>
+                  <div className="credits-tile-label">Messages Generated</div>
+                  <div className="credits-tile-value">{credits.total_used}</div>
+                  <div className="credits-tile-microcopy">All-time total</div>
                 </div>
                 <div className="credits-tile used">
-                  <div className="credits-tile-label">Total Used</div>
-                  <div className="credits-tile-value">{credits.total_used}</div>
-                  <div className="credits-tile-microcopy">1 DM = 1 credit</div>
+                  <div className="credits-tile-label">Ready to Scale?</div>
+                  <div className="credits-tile-value">⚡</div>
+                  <div className="credits-tile-microcopy">Upgrade for unlimited</div>
                 </div>
               </>
             )}
@@ -208,7 +222,7 @@ const Payments: React.FC = () => {
           {credits.has_subscription && credits.credits > 0 && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                💎 You also have <strong>{credits.credits} bonus credits</strong> that never expire!
+                💎 You also have <strong>{credits.credits} bonus messages</strong> that never expire!
               </p>
             </div>
           )}
@@ -267,7 +281,7 @@ const Payments: React.FC = () => {
       <div className="credits-plans-card">
         <div className="credits-plans-header">
           <h2 className="credits-plans-title">
-            {subscription?.has_subscription ? 'Change Plan' : 'Choose Your Plan'}
+            {subscription?.has_subscription ? 'Change Your Plan' : 'Upgrade Plans'}
           </h2>
           <a href="#" className="credits-plans-link">View billing history</a>
         </div>
@@ -334,7 +348,7 @@ const Payments: React.FC = () => {
                     ) : subscription?.has_subscription ? (
                       'Switch to This Plan'
                     ) : (
-                      'Subscribe'
+                      'Upgrade Now'
                     )}
                   </button>
                 </div>
@@ -349,7 +363,7 @@ const Payments: React.FC = () => {
         
         <div className="credits-trust-footer">
           <p>Secure payments via Stripe.</p>
-          <p>Cancel anytime. Message allowances reset monthly.</p>
+          <p>Cancel anytime. Upgrade or downgrade your plan as needed.</p>
         </div>
       </div>
     </div>

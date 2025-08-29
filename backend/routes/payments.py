@@ -2,11 +2,12 @@ from fastapi import APIRouter, HTTPException, status, Depends, Request
 from pydantic import BaseModel
 from backend.database import Database
 from backend.auth import get_current_user
-from backend.payment_service import PaymentService
+from backend.payment_service import PaymentService, PAYMENT_PLANS
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 import logging
-import os
 import stripe
+import os
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -282,4 +283,69 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to cancel subscription"
+        )
+
+@router.post("/refresh-subscription")
+async def refresh_subscription_from_stripe(current_user: dict = Depends(get_current_user)):
+    """Force refresh subscription data from Stripe (useful for immediate updates after checkout)"""
+    
+    subscription = Database.get_user_subscription(current_user["_id"])
+    if not subscription:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No subscription found"
+        )
+    
+    try:
+        # Fetch latest subscription data from Stripe
+        stripe_subscription = stripe.Subscription.retrieve(subscription["stripe_subscription_id"])
+        
+        # Update our database with the latest Stripe data
+        stripe_price_id = stripe_subscription['items']['data'][0]['price']['id']
+        
+        # Find the corresponding plan in our system
+        new_plan_id = None
+        new_monthly_allowance = None
+        
+        for plan_id, plan_data in PAYMENT_PLANS.items():
+            if plan_data["price_id"] == stripe_price_id:
+                new_plan_id = plan_id
+                new_monthly_allowance = plan_data["messages"]
+                break
+        
+        if new_plan_id:
+            updates = {
+                "plan_id": new_plan_id,
+                "status": stripe_subscription['status'],
+                "monthly_allowance": new_monthly_allowance,
+                "current_period_start": datetime.fromtimestamp(stripe_subscription['current_period_start']),
+                "current_period_end": datetime.fromtimestamp(stripe_subscription['current_period_end'])
+            }
+            
+            success = Database.update_subscription(subscription["stripe_subscription_id"], updates)
+            
+            if success:
+                # Return the updated subscription
+                updated_subscription = Database.get_user_subscription(current_user["_id"])
+                return {
+                    "success": True,
+                    "message": "Subscription refreshed successfully",
+                    "subscription": updated_subscription
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to update subscription data"
+                )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unable to map Stripe subscription to plan"
+            )
+            
+    except Exception as e:
+        logging.error(f"Error refreshing subscription: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to refresh subscription data"
         )

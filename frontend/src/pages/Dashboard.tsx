@@ -66,6 +66,10 @@ const Dashboard: React.FC = () => {
     const paymentStatus = searchParams.get('payment');
     if (paymentStatus === 'success') {
       setPaymentSuccess(true);
+      // Refresh data to show updated subscription
+      setTimeout(() => {
+        fetchDashboardData();
+      }, 1000); // Small delay to allow webhook processing
       setTimeout(() => {
         setPaymentSuccess(false);
         window.history.replaceState({}, '', '/app/dashboard');
@@ -141,7 +145,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             <Link to="/app/payments" className="kpi-link">
-              {credits?.has_subscription ? 'Manage' : 'Subscribe'}
+              {credits?.has_subscription ? 'Manage' : 'Upgrade'}
             </Link>
           </div>
         </div>
